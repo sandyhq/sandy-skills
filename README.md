@@ -17,7 +17,7 @@ npx sandy-skills init --tools pi,claude,codex              # or: pnpm exec … /
 
 - [standards/](standards/README.md): the secure engineering baseline, the spec format and the repo structure.
 - [openspec/schemas/proven/](openspec/schemas/proven/schema.yaml): the schema. Each change lists its claims as todo tests and keeps its decisions in `design.md`.
-- [skills/](skills/): `spec-first`, `propose-change` and `confirm-part`, in the Agent Skills format.
+- [skills/](skills/), in the Agent Skills format: `spec-first`, `propose-change` and `confirm-part` for working spec first; `learn-part` and `examine-part` so the people who own the repo understand what agents built, and prove it.
 - [bin/](bin/sandy-skills.mjs), [src/](src/): the `sandy-skills` CLI. Its only dependency is OpenSpec.
 - [openspec/specs/](openspec/specs/): this repo's own parts, proven by its own tests in CI.
 

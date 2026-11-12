@@ -9,6 +9,7 @@ import { check } from '../src/check.mjs';
 import { renderMarkdown } from '../src/report.mjs';
 import { loadSpec, loadSpecs, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
 import { install, PACKAGE } from '../src/install.mjs';
+import { parseExamined, examAllows } from '../src/exam.mjs';
 
 const USAGE = `Usage:
   sandy-skills init [--tools LIST] [--skills-dir DIR]... [--root DIR]
@@ -20,7 +21,8 @@ const USAGE = `Usage:
 
 init sets up OpenSpec if the repo has none (--tools goes to openspec init), then installs the proven
 schema as default and the skills next to OpenSpec's. update installs them again from this version.
-check exits 1 when the result is not releasable (any error; with --strict also any warning).`;
+check exits 1 when the result is not releasable (any error; with --strict also any warning).
+confirm for the I side needs a passed exam on the current contract in .learn/<who>/exams/<spec-id>.md.`;
 
 function args(argv) {
   const opts = { junit: [], 'skills-dir': [], positional: [] };
@@ -82,6 +84,11 @@ function main(argv) {
     if (!['I', 'We', 'They'].includes(side) || !who) { console.error(USAGE); return 2; }
     const days = Number(opts.days ?? 90);
     if (!(days >= 1 && days <= 90)) { console.error('--days must be 1 to 90'); return 2; }
+    if (side === 'I') {
+      const file = join(root, '.learn', who, 'exams', `${rest[0]}.md`);
+      const verdict = examAllows(existsSync(file) ? parseExamined(readFileSync(file, 'utf8')) : [], { who, hash: part.contract.hash, today });
+      if (!verdict.ok) { console.error(`no I confirmation: ${verdict.reason} (${file.slice(root.length + 1)}). Pass the exam first: the examine-part skill.`); return 1; }
+    }
     console.log(`- **CONFIRMED** ${side} by ${who} on ${today}, expires ${addDays(today, days)}, contract ${part.contract.hash}`);
     return 0;
   }

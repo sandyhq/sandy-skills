@@ -1,6 +1,6 @@
 # Using OpenSpec with sandy-skills
 
-OpenSpec holds what the system must do; `sandy-skills check` computes from the tests what is proven. Agents follow the same loop through the skills (`spec-first`, `propose-change`, `confirm-part`, and OpenSpec's `openspec-*`). Commands below are shown bare; run them through your package manager ([getting started](getting-started.md#1-install)).
+OpenSpec holds what the system must do; `sandy-skills check` computes from the tests what is proven. Agents follow the same loop through the skills (`spec-first`, `propose-change`, `confirm-part`, `learn-part`, `examine-part`, and OpenSpec's `openspec-*`). Commands below are shown bare; run them through your package manager ([getting started](getting-started.md#1-install)).
 
 ## The loop
 
@@ -13,6 +13,15 @@ OpenSpec holds what the system must do; `sandy-skills check` computes from the t
 
 A person confirms a part with the `confirm-part` skill: `sandy-skills hash <id>` gives the contract hash, `sandy-skills confirm <id> We <who>` prints the CONFIRMED line they commit.
 
+## Understanding what was built
+
+Agents build faster than people follow. Two skills close the gap, both hands-on in the real repo:
+
+- **`learn-part`** teaches one part or topic per session. You predict first, read the spec, tests and code yourself, and explain it back without notes. Then you trace, break and extend it in a scratch worktree, and write the part's intent in your own words. Earlier topics come back after 1, 3, 7, 21 and 60 days.
+- **`examine-part`** is the exam. Run it with a fresh agent of another model family than the one that taught you. It seals an answer key before the first question. It asks why-chains, what-ifs and traps, and plants bugs, including some the tests miss. There's no partial credit, and test runs grade the practical tasks.
+
+Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I side of a part, you need a passed exam on its current contract from the last 90 days; `sandy-skills confirm <id> I <who>` checks `.learn/<who>/exams/<id>.md`.
+
 ## sandy-skills commands
 
 | Command | What it does |
@@ -21,7 +30,7 @@ A person confirms a part with the `confirm-part` skill: `sandy-skills hash <id>`
 | `update [--skills-dir DIR]` | Installs schema and skills again from the installed version |
 | `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift and the releasability report; exit 1 if not releasable |
 | `hash <id>` | The contract hash of a part |
-| `confirm <id> <I\|We\|They> <who> [--days N]` | The CONFIRMED line, valid at most 90 days |
+| `confirm <id> <I\|We\|They> <who> [--days N]` | The CONFIRMED line, valid at most 90 days; I needs a passed exam |
 
 `OPENSPEC_BIN` overrides which OpenSpec it runs; by default the repo's own install, then the one it brings.
 

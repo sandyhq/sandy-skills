@@ -39,6 +39,15 @@ export function setDefaultSchema(root) {
   writeFileSync(path, next);
 }
 
+/** Adds .learn/ (personal learning records) to .gitignore once and keeps the other lines. */
+export function ignoreLearning(root) {
+  const path = join(root, '.gitignore');
+  const text = existsSync(path) ? readFileSync(path, 'utf8') : '';
+  if (text.split('\n').some((l) => l.trim() === '.learn/' || l.trim() === '.learn')) return false;
+  writeFileSync(path, text + (text && !text.endsWith('\n') ? '\n' : '') + '.learn/\n');
+  return true;
+}
+
 /**
  * Copies the schema, sets it as default and installs the skills. Returns what it did, one line each.
  * dirs: skill directories to use instead of the ones OpenSpec wrote to.
@@ -50,6 +59,7 @@ export function install(root, { dirs = [] } = {}) {
   done.push(`schema   openspec/schemas/${SCHEMA}/`);
   setDefaultSchema(root);
   done.push(`config   openspec/config.yaml: schema: ${SCHEMA}`);
+  if (ignoreLearning(root)) done.push('ignore   .gitignore: .learn/');
 
   let targets = dirs.length ? dirs.map((d) => ({ dir: resolve(root, d), link: null })) : skillDirs(root);
   if (targets.length === 0) targets = [{ dir: join(root, '.agents', 'skills'), link: null }];

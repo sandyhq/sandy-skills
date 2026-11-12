@@ -20,7 +20,7 @@ One OpenSpec capability, `openspec/specs/<id>/spec.md`. This repo's [cli spec](.
 Computed by `sandy-skills check` from the specs and the JUnit report of the current commit; never committed.
 
 - **It** (keeps its contract): ● hard when every referenced test passed, ✕ refuted when one failed, ○ open when one is todo, skipped or untested.
-- **I** (someone can explain it), **We** (the whole above counts on it), **They** (it holds among its neighbours): ◐ soft when a person confirmed the current contract, ◌ claimed when that person carries the part, ◇ expired after its date or when the contract changed.
+- **I** (someone can explain it), **We** (the whole above counts on it), **They** (it holds among its neighbours): ◐ soft when a person confirmed the current contract, ◌ claimed when that person carries the part, ◇ expired after its date or when the contract changed. Before someone confirms I, they pass a hard exam on the current contract (examine-part); `sandy-skills confirm` refuses I otherwise.
 - A part is as proven as its weakest side, or ◇ drift when it has a finding of its own: a failing, missing or todo test outside an open change, a test name that differs from its claim, an unknown parent or seam target, a cycle, a contradiction (an exclusive seam to X while a part outside writes to X), no why, status proposed, or more than 7 children.
 
 ## Changes and decisions
@@ -35,4 +35,4 @@ openspec validate --all --strict
 sandy-skills check --junit <report> --out reports/releasability.md
 ```
 
-Skills: [spec-first](../skills/spec-first/SKILL.md), [propose-change](../skills/propose-change/SKILL.md), [confirm-part](../skills/confirm-part/SKILL.md).
+Skills: [spec-first](../skills/spec-first/SKILL.md), [propose-change](../skills/propose-change/SKILL.md), [confirm-part](../skills/confirm-part/SKILL.md), [learn-part](../skills/learn-part/SKILL.md), [examine-part](../skills/examine-part/SKILL.md).

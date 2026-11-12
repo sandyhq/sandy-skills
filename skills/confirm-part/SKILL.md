@@ -15,7 +15,7 @@ Tests prove the It side: does the part keep its contract. Three sides need a per
 
 ## Steps
 
-1. `openspec show <id> --type spec`. Note the Purpose, the Contract and the seams. Pick the side and the person with the owner.
+1. `openspec show <id> --type spec`. Note the Purpose, the Contract and the seams. Pick the side and the person with the owner. For **I**, the person must first pass the exam on the part's current contract (examine-part). Without that pass, `sandy-skills confirm` refuses the I side; send them to learn-part, then to the exam.
 2. Ask, one question at a time, without showing the spec first:
    - **I**: Why does this part exist? What must it always do? What happens at its edges, when a seam fails?
    - **We**: What do you rely on this part for? What would break above if its contract stopped holding?
@@ -28,6 +28,7 @@ Tests prove the It side: does the part keep its contract. Three sides need a per
 
 ## Rules
 
+- The interview does not replace the exam. For I, the exam is the proof; the interview only checks the answers once more before the person commits.
 - `by` is the person, never an agent. An agent's review is evidence for the person, not a confirmation.
 - The line carries the contract hash. If the contract changes, the confirmation stops counting on its own; then confirm again.
 - No answer, or the person is unsure: write nothing. The side stays open.

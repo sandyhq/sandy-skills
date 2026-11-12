@@ -15,7 +15,7 @@ const hasOpenspec = openspec('--version').status === 0;
 
 test("The repository SHALL hold the standards, the proven schema, the sandy-skills CLI and the skills, and check each of them in CI.", () => {
   for (const p of ['standards/README.md', 'standards/sources.md', 'openspec/schemas/proven/schema.yaml', 'bin/sandy-skills.mjs', 'package.json']) assert.ok(existsSync(root + p), p);
-  assert.deepEqual(skills, ['confirm-part', 'propose-change', 'spec-first']);
+  assert.deepEqual(skills, ['confirm-part', 'examine-part', 'learn-part', 'propose-change', 'spec-first']);
   const ci = read('.github/workflows/ci.yml');
   for (const step of ['validate --all --strict', '--test-reporter=junit', 'sandy-skills.mjs check']) assert.ok(ci.includes(step), step);
 });
@@ -61,4 +61,12 @@ test("The npm package SHALL contain the CLI, the proven schema, the skills and t
   const files = JSON.parse(r.stdout)[0].files.map((f) => f.path);
   for (const p of ['bin/sandy-skills.mjs', 'src/install.mjs', 'openspec/schemas/proven/schema.yaml', 'standards/spec-format.md', 'README.md', 'LICENSE', ...skills.map((s) => `skills/${s}/SKILL.md`)]) assert.ok(files.includes(p), p);
   assert.deepEqual(files.filter((p) => /(^|\/)test\//.test(p) || p.startsWith('openspec/specs/') || p.startsWith('.')), []);
+});
+
+test("The EXAMINED line that examine-part writes SHALL be the line confirm reads.", async () => {
+  const { parseExamined } = await import('../src/exam.mjs');
+  const template = read('skills/examine-part/SKILL.md').split('\n').map((l) => l.trim()).find((l) => l.startsWith('- **EXAMINED**'));
+  assert.ok(template, 'examine-part shows the line');
+  const filled = template.replace('<who>', 'bo').replace('<date>', '2026-11-12').replace('<passed|failed>', 'passed').replace('<contract hash>', 'ab12cd34').replace('<key hash>', '0123abcd');
+  assert.deepEqual(parseExamined(filled), [{ who: 'bo', on: '2026-11-12', result: 'passed', contract: 'ab12cd34', key: '0123abcd' }]);
 });

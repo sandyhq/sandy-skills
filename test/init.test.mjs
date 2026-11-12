@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
-const SKILLS = ['confirm-part', 'propose-change', 'spec-first'];
+const SKILLS = ['confirm-part', 'examine-part', 'learn-part', 'propose-change', 'spec-first'];
 const run = (cwd, ...args) => spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: 'utf8' });
 const repo = () => mkdtempSync(join(tmpdir(), 'sandy-skills-init-'));
 const read = (p) => readFileSync(p, 'utf8');
@@ -58,4 +58,17 @@ test("If the repo has no openspec directory, then update SHALL fail and change n
   const r = run(dir, 'update');
   assert.notEqual(r.status, 0);
   assert.deepEqual(readdirSync(dir), []);
+});
+
+test("When init or update runs, it SHALL add .learn/ to the repo's .gitignore once and keep the file's other lines.", () => {
+  const ignored = (dir) => read(join(dir, '.gitignore')).split('\n').filter((l) => l.trim() === '.learn/').length;
+  const bare = repo();
+  assert.equal(run(bare, 'init', '--tools', 'none').status, 0);
+  assert.equal(ignored(bare), 1, 'created when missing');
+  const dir = repo();
+  writeFileSync(join(dir, '.gitignore'), 'node_modules/\n*.log');
+  assert.equal(run(dir, 'init', '--tools', 'none').status, 0);
+  assert.equal(run(dir, 'update').status, 0);
+  assert.equal(ignored(dir), 1, 'once, after init and update');
+  assert.match(read(join(dir, '.gitignore')), /^node_modules\/\n\*\.log\n/);
 });
