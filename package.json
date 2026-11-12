@@ -1,6 +1,6 @@
 {
   "name": "@sandyhq/sandy-skills",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Engineering standards for repos where people and AI agents build together: the proven OpenSpec schema, agent skills and a checker that computes what is proven.",
   "keywords": ["openspec", "spec-driven", "agent-skills", "testing", "releasability"],
   "homepage": "https://github.com/sandyhq/sandy-skills#readme",
