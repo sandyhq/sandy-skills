@@ -302,3 +302,11 @@ The checker SHALL read thresholds only from the limits key directly under sandy-
 - **WHEN** sandy-skills.reports.limits sets total to warn 1 and sandy-skills.limits sets total to warn 600
 - **THEN** check uses 600
 - **TEST** `test/limits.test.mjs::The checker SHALL read thresholds only from the limits key directly under sandy-skills, never from a limits key nested deeper.`
+
+### Requirement: Quoted config values
+The checker SHALL read quoted config values with commas and # as one value, and stop with a message naming the line for config syntax it does not read.
+
+#### Scenario: Quoted config values
+- **WHEN** vagueWords lists `"maybe, later"` and `"right # away"`, or a list runs over 2 lines
+- **THEN** check reads 2 words, or stops and names the line
+- **TEST** `test/limits.test.mjs::The checker SHALL read quoted config values with commas and # as one value, and stop with a message naming the line for config syntax it does not read.`

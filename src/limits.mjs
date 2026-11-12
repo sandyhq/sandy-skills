@@ -15,32 +15,72 @@ const MEASURES = Object.keys(DEFAULT_LIMITS);
 /** Scenario keywords and SHALL are the spec's grammar, never a vague word, even when an override list names them. */
 const KEYWORDS = /\*\*(WHEN|THEN|AND|GIVEN|TEST)\*\*|\bSHALL\b/g;
 
-const indent = (line) => /^\s*/.exec(line)[0].length;
-const blank = (line) => /^\s*(#.*)?$/.test(line);
-function scalar(raw) {
-  const v = raw.trim();
-  const q = /^(["'])(.*)\1\s*(#.*)?$/.exec(v);
-  return q ? q[2] : v.replace(/\s+#.*$/, '').trim();
+const CONFIG = 'openspec/config.yaml';
+const indent = (line) => /^\s*/.exec(line.t)[0].length;
+const blank = (line) => line.t.trim() === '';
+const fail = (line, message) => new Error(`${CONFIG} line ${line.n}: ${message}`);
+
+/** The line's text without its comment: a # after a space or at the start, outside quotes. Quotes open at a value's start. */
+function uncomment(line) {
+  const t = line.t;
+  let quote = null;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (quote) {
+      if (c === '\\' && quote === '"') throw fail(line, 'backslash escapes are not read; use single quotes');
+      if (c === quote) { if (quote === "'" && t[i + 1] === "'") i++; else quote = null; }
+    } else if ((c === '"' || c === "'") && (i === 0 || /[\s[{,:]/.test(t[i - 1]))) quote = c;
+    else if (c === '#' && (i === 0 || /\s/.test(t[i - 1]))) return { ...line, t: t.slice(0, i).trimEnd() };
+  }
+  if (quote) throw fail(line, `the quote ${quote} does not close on this line`);
+  return { ...line, t: t.trimEnd() };
 }
-/** The lines indented below the key line at `at`. */
+
+/** The items of a flow list or map body, split at commas outside quotes. */
+function splitFlow(body) {
+  const items = [];
+  let quote = null, from = 0;
+  for (let i = 0; i < body.length; i++) {
+    const c = body[i];
+    if (quote) { if (c === quote) { if (quote === "'" && body[i + 1] === "'") i++; else quote = null; } }
+    else if ((c === '"' || c === "'") && (i === 0 || /[\s,:]/.test(body[i - 1]))) quote = c;
+    else if (c === ',') { items.push(body.slice(from, i)); from = i + 1; }
+  }
+  items.push(body.slice(from));
+  return items.map((x) => x.trim()).filter(Boolean);
+}
+
+/** One value: quoted, or plain without YAML syntax that this reader does not read. */
+function scalar(raw, line) {
+  const v = raw.trim();
+  let m;
+  if ((m = /^"([^"]*)"$/.exec(v))) return m[1];
+  if ((m = /^'((?:[^']|'')*)'$/.exec(v))) return m[1].replace(/''/g, "'");
+  if (/^[[\]{}&*!|>%@`"']|[[\]{}]|:(\s|$)/.test(v)) throw fail(line, `cannot read "${v}"; write a number, a word or a quoted text`);
+  return v;
+}
+
+/** The lines indented below the key line at `at`, and a list item at the key's own indent. */
 function block(lines, at) {
   const own = indent(lines[at]);
   const body = [];
-  for (let i = at + 1; i < lines.length && (blank(lines[i]) || indent(lines[i]) > own || (/^\s*- /.test(lines[i]) && indent(lines[i]) === own)); i++) body.push(lines[i]);
+  for (let i = at + 1; i < lines.length && (blank(lines[i]) || indent(lines[i]) > own || (/^\s*- /.test(lines[i].t) && indent(lines[i]) === own)); i++) body.push(lines[i]);
   return body;
 }
 
 /** `{ warn: 1, error: 2 }` on the key's line, or `warn: 1` and `error: 2` on the lines below it. */
-function thresholds(raw, below, where) {
-  const pairs = raw.startsWith('{')
-    ? (raw.endsWith('}') ? raw.slice(1, -1).split(',').filter((p) => p.trim()) : null)
-    : raw === '' ? below.filter((l) => !blank(l)) : null;
-  if (!pairs) throw new Error(`${where} must be { warn: <words>, error: <words> }`);
+function thresholds(raw, below, line, where) {
+  let pairs;
+  if (raw.startsWith('{')) {
+    if (!raw.endsWith('}')) throw fail(line, `${where} must be { warn: <words>, error: <words> } on one line`);
+    pairs = splitFlow(raw.slice(1, -1)).map((t) => [t, line]);
+  } else if (raw === '') pairs = below.filter((l) => !blank(l)).map((l) => [l.t, l]);
+  else throw fail(line, `${where} must be { warn: <words>, error: <words> }`);
   const out = {};
-  for (const p of pairs) {
-    const m = /^\s*(warn|error)\s*:\s*(.*)$/.exec(p);
-    const value = m && scalar(m[2]);
-    if (!m || !/^\d+$/.test(value)) throw new Error(`${where}: "${p.trim()}" is not warn: <number> or error: <number>`);
+  for (const [t, l] of pairs) {
+    const m = /^\s*(warn|error)\s*:\s*(.*)$/.exec(t);
+    const value = m && scalar(m[2], l);
+    if (!m || !/^\d+$/.test(value)) throw fail(l, `${where}: "${t.trim()}" is not warn: <number> or error: <number>`);
     out[m[1]] = Number(value);
   }
   return out;
@@ -48,47 +88,53 @@ function thresholds(raw, below, where) {
 
 /**
  * The limits from the text of openspec/config.yaml: `sandy-skills.limits`; each missing key or field at its default.
- * Reads only that block: per measure `{ warn: N, error: N }`, and `vagueWords` as `[a, b]` or `- a` lines.
+ * A small hand-written reader of that block only (owner: no YAML library): per measure `{ warn: N, error: N }` or
+ * `warn:`/`error:` lines, and `vagueWords` as a one-line `[a, "b, c"]` or `- a` lines. Any other YAML in it stops check
+ * with the line number instead of being misread.
  */
 export function readLimits(configText) {
   const limits = Object.fromEntries(MEASURES.map((k) => [k, { ...DEFAULT_LIMITS[k] }]));
   limits.vagueWords = [...DEFAULT_VAGUE_WORDS];
-  const lines = String(configText ?? '').replace(/\r\n?/g, '\n').split('\n');
-  const top = lines.findIndex((l) => /^sandy-skills:\s*(#.*)?$/.test(l));
+  const lines = String(configText ?? '').replace(/\r\n?/g, '\n').split('\n').map((t, i) => ({ t, n: i + 1 }));
+  const top = lines.findIndex((l) => /^sandy-skills:/.test(l.t));
   if (top < 0) return limits;
+  if (!/^sandy-skills:\s*(#.*)?$/.test(lines[top].t)) throw fail(lines[top], 'write sandy-skills: as a block, one key per line');
   const inner = block(lines, top);
-  const first = inner.find((l) => !blank(l));
+  const first = inner.find((l) => !blank(l) && !/^\s*#/.test(l.t));
   if (!first) return limits;
   const child = indent(first);
-  const at = inner.findIndex((l) => indent(l) === child && /^\s+limits:\s*(#.*)?$/.test(l));
+  const at = inner.findIndex((l) => indent(l) === child && /^\s+limits:/.test(l.t));
   if (at < 0) return limits;
-  const body = block(inner, at);
-  const keyIndent = body.find((l) => !blank(l)) ? indent(body.find((l) => !blank(l))) : 0;
+  if (!/^\s+limits:\s*(#.*)?$/.test(inner[at].t)) throw fail(inner[at], 'write limits: as a block, one key per line');
+  const body = block(inner, at).map(uncomment);
+  const keyLine = body.find((l) => !blank(l));
+  const keyIndent = keyLine ? indent(keyLine) : 0;
   for (let i = 0; i < body.length; i++) {
     if (blank(body[i])) continue;
-    const m = /^\s*([A-Za-z]+):\s*(.*)$/.exec(body[i]);
-    if (!m || indent(body[i]) !== keyIndent) throw new Error(`openspec/config.yaml: cannot read "${body[i].trim()}" under sandy-skills.limits`);
-    const [, key, raw] = m;
-    const where = `openspec/config.yaml: sandy-skills.limits.${key}`;
-    const value = scalar(raw);
+    const m = /^\s*([A-Za-z]+):(?:\s+(.*))?$/.exec(body[i].t);
+    if (!m || indent(body[i]) !== keyIndent) throw fail(body[i], `cannot read "${body[i].t.trim()}" under sandy-skills.limits`);
+    const [, key, raw = ''] = m;
+    const line = body[i];
+    const where = `sandy-skills.limits.${key}`;
     let j = i;
-    while (j + 1 < body.length && (blank(body[j + 1]) || indent(body[j + 1]) > keyIndent || (key === 'vagueWords' && /^\s*- /.test(body[j + 1])))) j++;
+    while (j + 1 < body.length && (blank(body[j + 1]) || indent(body[j + 1]) > keyIndent || (key === 'vagueWords' && /^\s*- /.test(body[j + 1].t)))) j++;
     const below = body.slice(i + 1, j + 1);
     i = j;
     if (MEASURES.includes(key)) {
-      Object.assign(limits[key], thresholds(value, below, where));
-      if (limits[key].warn > limits[key].error) throw new Error(`${where}: warn ${limits[key].warn} is above error ${limits[key].error}`);
+      Object.assign(limits[key], thresholds(raw.trim(), below, line, where));
+      if (limits[key].warn > limits[key].error) throw fail(line, `${where}: warn ${limits[key].warn} is above error ${limits[key].error}`);
     } else if (key === 'vagueWords') {
+      const value = raw.trim();
       if (value.startsWith('[')) {
-        if (!value.endsWith(']')) throw new Error(`${where}: the list must close with ] on the same line`);
-        limits.vagueWords = value.slice(1, -1).split(',').map(scalar).filter(Boolean);
+        if (!value.endsWith(']')) throw fail(line, `${where}: the list must close with ] on the same line`);
+        limits.vagueWords = splitFlow(value.slice(1, -1)).map((v) => scalar(v, line));
       } else if (value === '') {
         limits.vagueWords = below.filter((l) => !blank(l)).map((l) => {
-          if (!/^\s*- /.test(l)) throw new Error(`${where}: "${l.trim()}" is no list item`);
-          return scalar(l.replace(/^\s*- /, ''));
+          if (!/^\s*- /.test(l.t)) throw fail(l, `${where}: "${l.t.trim()}" is no list item`);
+          return scalar(l.t.replace(/^\s*- /, ''), l);
         });
-      } else throw new Error(`${where} must be a list`);
-    } else throw new Error(`${where} is no limit; known: ${[...MEASURES, 'vagueWords'].join(', ')}`);
+      } else throw fail(line, `${where}: cannot read "${value}"; write a list`);
+    } else throw fail(line, `${where} is no limit; known: ${[...MEASURES, 'vagueWords'].join(', ')}`);
   }
   return limits;
 }

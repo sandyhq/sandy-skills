@@ -125,6 +125,28 @@ test('The checker SHALL read thresholds only from the limits key directly under 
   assert.deepEqual(readLimits('sandy-skills:\n    limits:\n        total: {warn: 600, error: 900}\n').total, { warn: 600, error: 900 }, '4-space indent');
 });
 
+test('The checker SHALL read quoted config values with commas and # as one value, and stop with a message naming the line for config syntax it does not read.', () => {
+  const head = 'schema: spec-driven # c\nsandy-skills:\n  limits:\n';
+  const flow = readLimits(head + '    vagueWords: ["maybe, later", \'right # away\', \'it\'\'s\', hurry]  # owner\n');
+  assert.deepEqual(flow.vagueWords, ['maybe, later', 'right # away', "it's", 'hurry']);
+  assert.deepEqual(readLimits(head + "    vagueWords: [don't, x]\n").vagueWords, ["don't", 'x']);
+  const block = readLimits(head + '    vagueWords:\n      - "right # away"  # owner\n      - \'a, b\'\n    total: { warn: "600", error: 900 } # c\n');
+  assert.deepEqual([block.vagueWords, block.total], [['right # away', 'a, b'], { warn: 600, error: 900 }]);
+  const r = run([change({ 'proposal.md': 'We defer\nmaybe, later.\n' })], flow);
+  assert.deepEqual(found(r).map((f) => [f.line, f.word]), [[2, 'maybe, later']]);
+  for (const [text, message] of [
+    ['    vagueWords: [a,\n      b]\n', /line 4: .*\] on the same line/],
+    ['    vagueWords: ["a]\n', /line 4: .*quote " does not close/],
+    ['    vagueWords: ["a\\"b"]\n', /line 4: .*backslash/],
+    ['    vagueWords: [&x a]\n', /line 4: .*cannot read "&x a"/],
+    ['    vagueWords: |\n      a\n', /line 4: .*cannot read "\|"/],
+    ['    total: {warn: 1, error: {a: 2}}\n', /line 4: /],
+  ]) assert.throws(() => readLimits(head + text), message, text);
+  assert.throws(() => readLimits('sandy-skills: {limits: {total: {warn: 1}}}\n'), /line 1: write sandy-skills: as a block/);
+  assert.throws(() => readLimits('sandy-skills:\n  limits: {total: {warn: 1}}\n'), /line 2: write limits: as a block/);
+  assert.deepEqual(readLimits('sandy-skills:\n  other: "a \\" b"\n'), { ...DEFAULTS, vagueWords: DEFAULT_VAGUE_WORDS }, 'other keys stay unread');
+});
+
 test('If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.', () => {
   const flow = readLimits('sandy-skills:\n  limits:\n    proposal: { warn: 100 }\n');
   assert.deepEqual(flow, { ...DEFAULTS, proposal: { warn: 100, error: 225 }, vagueWords: DEFAULT_VAGUE_WORDS });
