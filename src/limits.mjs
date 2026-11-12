@@ -53,7 +53,7 @@ function thresholds(raw, below, where) {
 export function readLimits(configText) {
   const limits = Object.fromEntries(MEASURES.map((k) => [k, { ...DEFAULT_LIMITS[k] }]));
   limits.vagueWords = [...DEFAULT_VAGUE_WORDS];
-  const lines = String(configText ?? '').split('\n');
+  const lines = String(configText ?? '').replace(/\r\n?/g, '\n').split('\n');
   const top = lines.findIndex((l) => /^sandy-skills:\s*(#.*)?$/.test(l));
   if (top < 0) return limits;
   const inner = block(lines, top);

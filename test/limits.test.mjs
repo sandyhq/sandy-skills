@@ -110,6 +110,14 @@ test('Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use
   assert.equal(v.status, 0, v.stdout + v.stderr);
 });
 
+test('The checker SHALL read openspec/config.yaml with CRLF line endings the same as with LF line endings.', () => {
+  const lf = 'schema: spec-driven\nsandy-skills:\n  limits:\n    total: {warn: 600, error: 900}\n    vagueWords:\n      - hurry\n';
+  assert.deepEqual(readLimits(lf.replace(/\n/g, '\r\n')), readLimits(lf));
+  assert.deepEqual(readLimits(lf.replace(/\n/g, '\r\n')).total, { warn: 600, error: 900 });
+  const { result } = repo({ 'openspec/config.yaml': lf.replace(/\n/g, '\r\n'), 'openspec/changes/new/proposal.md': words(10) });
+  assert.deepEqual(found(result), []);
+});
+
 test('If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.', () => {
   const flow = readLimits('sandy-skills:\n  limits:\n    proposal: { warn: 100 }\n');
   assert.deepEqual(flow, { ...DEFAULTS, proposal: { warn: 100, error: 225 }, vagueWords: DEFAULT_VAGUE_WORDS });

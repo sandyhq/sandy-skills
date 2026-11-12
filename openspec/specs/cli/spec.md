@@ -286,3 +286,11 @@ The checker SHALL skip fenced code, HTML comments, backticks and the keywords SH
 - **WHEN** a listed word stands in code, a comment, backticks or a keyword
 - **THEN** check reports nothing
 - **TEST** `test/limits.test.mjs::The checker SHALL skip fenced code, HTML comments, backticks and the keywords SHALL, WHEN, THEN, AND and GIVEN when it looks for vague words.`
+
+### Requirement: CRLF config
+The checker SHALL read openspec/config.yaml with CRLF line endings the same as with LF line endings.
+
+#### Scenario: CRLF config
+- **WHEN** openspec/config.yaml sets total to warn 600 and error 900 with CRLF line endings
+- **THEN** check uses 600 and 900
+- **TEST** `test/limits.test.mjs::The checker SHALL read openspec/config.yaml with CRLF line endings the same as with LF line endings.`
