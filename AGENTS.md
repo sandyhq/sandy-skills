@@ -30,10 +30,9 @@ Run the first four before a commit. A test's name is the claim sentence its spec
 CI and the build run on boat VMs (`runs-on: boat`); only the publish job runs on `ubuntu-latest`, because npm trusted publishing does not accept self-hosted runners. The `npm` environment allows only `v*` tags and `main`.
 
 1. Bump `version` in `package.json`, commit, push.
-2. Tag `v<version>` and push the tag. `.github/workflows/release.yml` tests, packs and stages the tarball on npm (`npm stage publish`, OIDC, provenance). Running it by hand on `main` is a dry run.
-3. A maintainer of the sandyhq npm org checks and approves it with 2FA: `npm stage list @sandyhq/sandy-skills`, `npm stage approve <stage-id>`.
+2. Tag `v<version>` and push the tag. `.github/workflows/release.yml` tests, packs and publishes that tarball to npm (`npm publish`, OIDC, provenance, no token, no 2FA prompt). Running it by hand on `main` is a dry run.
 
-First release only: npm can trust a workflow only for a package that exists. From a checkout, `npm login` and `npm stage publish --access public` create `@sandyhq/sandy-skills` and stage 0.1.0; approve it as in step 3. Then on npmjs.com, package settings, add the trusted publisher: owner `sandyhq`, repo `sandy-skills`, workflow `release.yml`, environment `npm`, staging only. Its first use must come within two days.
+Who can push a `v*` tag can release. npm trusts only this workflow in the `npm` environment (trusted publisher: owner `sandyhq`, repo `sandy-skills`, workflow `release.yml`, environment `npm`).
 
 ## Rules
 
