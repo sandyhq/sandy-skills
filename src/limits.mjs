@@ -140,7 +140,7 @@ export function readLimits(configText) {
 }
 
 /** The lines of a Markdown file with fenced code and HTML comments blanked, read in document order; line numbers stay. */
-function proseLines(text) {
+export function proseLines(text) {
   const out = [];
   let fence = null;
   let comment = false;

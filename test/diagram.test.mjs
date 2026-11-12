@@ -49,7 +49,7 @@ function repo(files = {}) {
 const run = (root, ...args) => spawnSync(process.execPath, [BIN, ...args, '--root', root], { encoding: 'utf8' });
 const bare = (id, title = id) => ({ id, title, partOf: null, status: 'active', seams: [] });
 const check = (root) => {
-  const r = run(root, 'check', '--specs', specsFile, '--today', TODAY, '--format', 'json');
+  const r = run(root, 'check', '--specs', specsFile, '--junit', join(FIXTURE, 'junit.xml'), '--today', TODAY, '--format', 'json');
   return { status: r.status, findings: JSON.parse(r.stdout).findings.filter((f) => f.file) };
 };
 

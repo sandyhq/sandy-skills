@@ -25,10 +25,12 @@ for pm in "${@:-npm pnpm bun}"; do
     printf '%s\n' '# smoke Specification' '' '## Purpose' 'Proves that an installed sandy-skills runs OpenSpec, so that one command is enough.' '' \
       'Kind: system · Part of: none · Carried by: smoke · Status: active · Code: package.json' '' '## Requirements' '' \
       '### Requirement: Contract' 'The smoke repo SHALL run OpenSpec through sandy-skills.' '' '#### Scenario: Contract' \
-      '- **WHEN** sandy-skills runs an OpenSpec command' '- **THEN** OpenSpec answers' > openspec/specs/smoke/spec.md
+      '- **GIVEN** an installed sandy-skills' '- **WHEN** sandy-skills runs an OpenSpec command' '- **THEN** OpenSpec answers' \
+      '- **TEST** `test/smoke.test.mjs::The smoke repo SHALL run OpenSpec through sandy-skills.`' > openspec/specs/smoke/spec.md
+    printf '%s\n' '<testsuites><testsuite name="smoke"><testcase name="The smoke repo SHALL run OpenSpec through sandy-skills." classname="smoke" file="test/smoke.test.mjs"/></testsuite></testsuites>' > junit.xml
     "${run[@]}" list --specs | grep -q smoke
     "${run[@]}" show smoke --type spec | grep -q 'Requirement: Contract'
-    "${run[@]}" validate --all --strict > validate.log
+    "${run[@]}" validate --all --strict --junit junit.xml > validate.log
     grep -q '^\*\*Releasable\*\*' validate.log
     if "${run[@]}" no-such-command 2>/dev/null; then echo "an unknown command must fail"; exit 1; fi
     echo "ok: $p"

@@ -12,7 +12,7 @@ One OpenSpec capability, `openspec/specs/<id>/spec.md`. This repo's [cli spec](.
 - `### Requirement: Contract`: what must hold, one SHALL sentence.
 - `### Requirement: Seam to <id>`: one per neighbour; `Read-only.` or `Exclusive.` (the only writer) in the sentence.
 - Every other requirement is one claim, one [EARS](https://alistairmavin.com/ears/) sentence.
-- A scenario a test proves ends with `- **TEST** \`<path>::<test name>\``; the test name is the requirement sentence.
+- Every scenario has the lines `- **GIVEN**` (the starting state; `GIVEN any repo` when it does not matter), `- **WHEN**` (the action), `- **THEN**` (the outcome) and `- **TEST** \`<path>::<test name>\``, in this order. `- **AND**` lines are allowed after GIVEN, WHEN or THEN. The test name is the requirement sentence. `sandy-skills check` reports every other shape as the error `scenario-shape`, in `openspec/specs/` and in open changes.
 - A picture of parts and seams is generated from these lines, never drawn by hand: [diagrams](diagrams.md).
 - A person's confirmation: `- **CONFIRMED** <I|We|They> by <who> on <date>, expires <date>, contract <hash>` (or `REFUTED`), at most 90 days, hash from `sandy-skills hash <id>`.
 

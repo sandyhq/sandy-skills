@@ -39,7 +39,7 @@ test('When run on the same specs, report and date, the checker SHALL print the s
 test("confirm SHALL print an I confirmation only when the person passed the exam on the part's current contract within the last 90 days.", () => {
   const root = mkdtempSync(join(tmpdir(), 'sandy-skills-confirm-'));
   mkdirSync(join(root, 'openspec', 'specs', 'a'), { recursive: true });
-  writeFileSync(join(root, 'openspec', 'specs', 'a', 'spec.md'), '# a Specification\n\n## Purpose\nDoes the a work so that the whole above can count on it.\n\nKind: container · Part of: none · Carried by: ana · Status: active · Code: src/a/\n\n## Requirements\n\n### Requirement: Contract\nThe a SHALL keep its promise.\n\n#### Scenario: Contract\n- **WHEN** it runs\n- **THEN** it holds\n');
+  writeFileSync(join(root, 'openspec', 'specs', 'a', 'spec.md'), '# a Specification\n\n## Purpose\nDoes the a work so that the whole above can count on it.\n\nKind: container · Part of: none · Carried by: ana · Status: active · Code: src/a/\n\n## Requirements\n\n### Requirement: Contract\nThe a SHALL keep its promise.\n\n#### Scenario: Contract\n- **GIVEN** any repo\n- **WHEN** it runs\n- **THEN** it holds\n- **TEST** `t.mjs::Contract`\n');
   const sk = (...args) => spawnSync(process.execPath, [BIN, ...args, '--root', root, '--today', TODAY], { encoding: 'utf8' });
   const hash = sk('hash', 'a').stdout.trim();
   assert.match(hash, /^[0-9a-f]{8,}$/);

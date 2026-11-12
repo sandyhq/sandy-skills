@@ -11,7 +11,8 @@ Kind: component · Part of: <!-- parent spec id or none --> · Carried by: <!-- 
 The <!-- part --> SHALL <!-- what must hold, one sentence -->.
 
 #### Scenario: Contract holds
-- **WHEN** <!-- trigger -->
+- **GIVEN** <!-- starting state; "any repo" when it does not matter -->
+- **WHEN** <!-- action -->
 - **THEN** <!-- outcome -->
 - **TEST** `<!-- path -->::<!-- test name = the requirement sentence -->`
 
@@ -19,6 +20,7 @@ The <!-- part --> SHALL <!-- what must hold, one sentence -->.
 When <!-- trigger -->, the <!-- part --> SHALL <!-- response -->.
 
 #### Scenario: <!-- case -->
-- **WHEN** <!-- trigger -->
+- **GIVEN** <!-- starting state; "any repo" when it does not matter -->
+- **WHEN** <!-- action -->
 - **THEN** <!-- outcome -->
 - **TEST** `<!-- path -->::<!-- test name = the requirement sentence -->`

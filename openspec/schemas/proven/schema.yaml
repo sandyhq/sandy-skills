@@ -65,9 +65,14 @@ artifacts:
       - Every other requirement is one claim: one EARS sentence with SHALL
         (`When <trigger>, the <part> SHALL ...`, `If <unwanted>, then ...`,
         `While <state>, ...`, `Where <feature>, ...`, or plain `The <part> SHALL ...`).
-      - Every scenario that a test proves ends with a TEST line:
+      - Every scenario has exactly these lines, in this order:
+        - **GIVEN** <the starting state; `any repo` when it does not matter>
+        - **WHEN** <the action>
+        - **THEN** <the outcome>
         - **TEST** `<path>::<test name>`
-        The test's name is the requirement sentence, word for word.
+        `- **AND**` lines are allowed after GIVEN, WHEN or THEN. The test's name
+        is the requirement sentence, word for word. `sandy-skills check`
+        reports every other shape as the error scenario-shape.
       - Never write `- **CONFIRMED**` or `- **REFUTED**` lines: only people add
         them, through the confirm-part skill.
 
@@ -119,10 +124,10 @@ artifacts:
       Format requirements:
       - Each requirement: `### Requirement: <name>` followed by description
       - Use SHALL/MUST for normative requirements (avoid should/may)
-      - Each scenario: `#### Scenario: <name>` with WHEN/THEN format
+      - Each scenario: `#### Scenario: <name>` with GIVEN/WHEN/THEN/TEST lines
       - **CRITICAL**: Scenarios MUST use exactly 4 hashtags (`####`). Using 3 hashtags or bullets will fail silently.
       - Every requirement MUST have at least one scenario.
-      - Every scenario MUST have a WHEN/GIVEN step (its trigger) and a THEN step (its outcome). A scenario with only AND lines or plain prose still counts as a scenario, but `openspec validate` flags it as a warning: normal validation still passes, but `openspec validate --strict` fails on it.
+      - Every scenario MUST have GIVEN, WHEN, THEN and TEST lines in this order (see above). OpenSpec itself requires a WHEN/GIVEN step and a THEN step: a scenario with only AND lines or plain prose still counts as a scenario, but `openspec validate` flags it as a warning: normal validation still passes, but `openspec validate --strict` fails on it.
       - Keep each requirement's description (the text between `### Requirement:` and its first scenario) to 500 characters or fewer. `openspec validate` flags longer descriptions in ADDED requirements and in the main spec. This is a warning: normal validation still passes, but `openspec validate --strict` fails on it. When writing a new requirement, state one behavior per requirement: move examples and edge cases into scenarios, and split a requirement that covers several behaviors into separate `### Requirement:` blocks, each with its own scenarios. Under MODIFIED, keep the existing requirement block whole; never split, trim or rewrite existing text just to meet the length. Split an existing long requirement only when the user asks for it, in a change made for that purpose: under MODIFIED, keep its header and every scenario and cut its description down to one behavior without changing its meaning, then add each behavior you removed as its own ADDED requirement with its own scenarios.
 
       New capabilities only: the delta spec's first section is `## Purpose` -
@@ -164,8 +169,10 @@ artifacts:
       The system SHALL allow users to export their data in CSV format.
 
       #### Scenario: Successful export
-      - **WHEN** user clicks "Export" button
-      - **THEN** system downloads a CSV file with all user data
+      - **GIVEN** a signed-in user
+      - **WHEN** the user clicks "Export"
+      - **THEN** the system downloads a CSV file with all user data
+      - **TEST** `test/export.test.mjs::The system SHALL allow users to export their data in CSV format.`
 
       ## REMOVED Requirements
 

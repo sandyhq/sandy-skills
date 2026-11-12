@@ -18,10 +18,10 @@ A change is the plan for a behaviour change, approved through the MR. It holds i
    Then follow `openspec instructions <artifact> --change <id>` for each artifact in order: proposal, specs, design, tasks.
 3. **Read the shape.** Every file has fixed sections, the owner's part on top, and plain, exact wording: [changes](https://github.com/sandyhq/sandy-skills/blob/main/standards/changes.md). Follow it as written.
 4. **proposal.md**: Why (the owner's problem, 1 or 2 sentences), Your decisions (open owner decisions with your recommendation, or `None open.`), What Changes (at most 5 bullets, parts by spec id), Not in this change. A changed contract voids every confirmation of that part; say so under What Changes.
-5. **Delta specs**: the part format. A new part gets its Purpose with the `Kind: … · Part of: … · Carried by: … · Status: proposed · Code: …` line, a Contract and its claims.
+5. **Delta specs**: the part format. A new part gets its Purpose with the `Kind: … · Part of: … · Carried by: … · Status: proposed · Code: …` line, a Contract and its claims. Every scenario is GIVEN (the starting state, `GIVEN any repo` when it does not matter), WHEN (the action), THEN (the outcome), TEST, in this order, with AND lines only after GIVEN, WHEN or THEN.
 6. **design.md**: Owner decisions in his words, Agent decisions with the rejected option, Risks. This is the decision record; it is archived with the change and never edited later.
 7. **tasks.md**: Your steps, Proof (per claim one line `- [ ] 2.1 Prove` followed by `<path>::<claim sentence>` in backticks), Build (by what, each task ending with its check).
-8. **Check**: `openspec validate <id> --strict`, then `sandy-skills check`. Fix every `over-limit` and `vague-word`; on `long-change`, split the change. Open the MR as draft. The owner's approval of the MR approves the change.
+8. **Check**: `openspec validate <id> --strict`, then `sandy-skills check`. Fix every `over-limit`, `vague-word` and `scenario-shape`; on `long-change`, split the change. Open the MR as draft. The owner's approval of the MR approves the change.
 
 ## Rules
 

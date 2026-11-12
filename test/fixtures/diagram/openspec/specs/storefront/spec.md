@@ -11,12 +11,16 @@ Kind: container · Part of: shop · Carried by: ana · Status: proposed · Code:
 The storefront SHALL keep its promise.
 
 #### Scenario: Contract
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`
 
 ### Requirement: Seam to orders
 The storefront SHALL hand each order to the order book.
 
 #### Scenario: Seam to orders
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`

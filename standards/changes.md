@@ -41,20 +41,21 @@ None open.
 - [ ] 3.1 Thresholds; run tests
 ```
 
-**Delta specs** follow the [spec format](spec-format.md): one SHALL sentence per requirement, WHEN, THEN and TEST per scenario, Purpose first in new parts.
+**Delta specs** follow the [spec format](spec-format.md): one SHALL sentence per requirement, scenarios as GIVEN, WHEN, THEN, TEST, Purpose first in new parts.
 
 ```markdown
 ### Requirement: Warn band
 Above warn, check SHALL warn.
 #### Scenario: Long
-- **WHEN** 151 words
+- **GIVEN** 151 words
+- **WHEN** check runs
 - **THEN** check warns
 - **TEST** `test/a.test.mjs::<claim>`
 ```
 
 ## Wording
 
-Simple and exact, so a reader cannot misread it.
+Simple and exact; no reader can misread it.
 
 1. Answer first; one point per line; at most 5 items per list, 25 words per sentence.
 2. One term per thing, in every file; parts by spec id.
@@ -82,6 +83,6 @@ requirements (headings) | 5 | 7
 
 Other keys count words: tokens with a letter or digit, outside code fences, comments, TEST lines and Prove claims.
 
-`vague-word` blocks release: listed words, whole, any case, outside backticks, SHALL and bold WHEN, THEN, AND, GIVEN. Default: should, may, might, could, just, simply, probably, maybe, etc, various, appropriate, appropriately, as needed, if needed, and/or, tbd, some, several, soon, fast, quickly.
+`vague-word` blocks release: listed words, whole, any case, outside backticks, SHALL and bold scenario keywords. Default: should, may, might, could, just, simply, probably, maybe, etc, various, appropriate, appropriately, as needed, if needed, and/or, tbd, some, several, soon, fast, quickly.
 
 Override under `sandy-skills.limits` in `openspec/config.yaml`, as in `tasks: { error: 100 }`. Missing keys or fields keep defaults; `vagueWords` replaces the default list; other YAML stops check at its line.

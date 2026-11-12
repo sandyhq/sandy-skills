@@ -30,7 +30,7 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 |---|---|
 | `init [--tools LIST] [--skills-dir DIR]` | Sets up OpenSpec if missing, installs the schema as default and the skills |
 | `update [--skills-dir DIR]` | Installs schema and skills again from the installed version |
-| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes and the releasability report; exit 1 if not releasable |
+| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes, scenarios not shaped GIVEN, WHEN, THEN, TEST, and the releasability report; exit 1 if not releasable |
 | `validate [<openspec validate args>] [--junit FILE\|DIR] [--out FILE] [--strict]` | `openspec validate` with the other arguments, then `check` with `--junit`, `--out` and `--strict` (`--strict` goes to both); prints both, non-zero if either fails |
 | `diagram [<id>] [--write]` | A Mermaid flowchart of every part, or of one part, what is below it and its neighbours; `--write` refreshes every marked block in the repo's Markdown ([diagrams](https://github.com/sandyhq/sandy-skills/blob/main/standards/diagrams.md)) |
 | `hash <id>` | The contract hash of a part |

@@ -11,5 +11,7 @@ Kind: container · Part of: shop · Carried by: ana · Status: active · Code: s
 The kitchen SHALL keep its promise.
 
 #### Scenario: Contract
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`

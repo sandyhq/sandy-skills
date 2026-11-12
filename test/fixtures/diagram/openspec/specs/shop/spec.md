@@ -11,5 +11,7 @@ Kind: system · Part of: none · Carried by: ana · Status: active · Code: src/
 The corner shop SHALL keep its promise.
 
 #### Scenario: Contract
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`

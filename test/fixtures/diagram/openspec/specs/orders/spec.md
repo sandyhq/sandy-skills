@@ -11,12 +11,16 @@ Kind: component · Part of: kitchen · Carried by: ana · Status: active · Code
 The order book SHALL keep its promise.
 
 #### Scenario: Contract
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`
 
 ### Requirement: Seam to ledger
 The order book SHALL book every paid order in the ledger. Exclusive.
 
 #### Scenario: Seam to ledger
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`

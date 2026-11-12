@@ -11,12 +11,16 @@ Kind: system · Part of: none · Carried by: ana · Status: active · Code: src/
 The flour supplier SHALL keep its promise.
 
 #### Scenario: Contract
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`
 
 ### Requirement: Seam to kitchen
 The supplier SHALL deliver flour to the kitchen each week.
 
 #### Scenario: Seam to kitchen
+- **GIVEN** any repo
 - **WHEN** it runs
 - **THEN** it holds
+- **TEST** `test/diagram.test.mjs::fixture`

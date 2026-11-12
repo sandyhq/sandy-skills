@@ -98,7 +98,7 @@ test('Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use
   const { root, result } = repo({
     'openspec/config.yaml': config,
     'openspec/changes/new/proposal.md': '## Why\n\n' + words(8) + ' longer than fifty characters in all.\n\n## What Changes\n\n- **a** b\n',
-    'openspec/changes/new/specs/a/spec.md': '## ADDED Requirements\n\n### Requirement: A\nThe a SHALL hold.\n\n#### Scenario: A\n- **WHEN** x\n- **THEN** y\n',
+    'openspec/changes/new/specs/a/spec.md': '## ADDED Requirements\n\n### Requirement: A\nThe a SHALL hold.\n\n#### Scenario: A\n- **GIVEN** any repo\n- **WHEN** x\n- **THEN** y\n- **TEST** `t.mjs::A`\n',
   });
   assert.deepEqual(found(result).map((f) => [f.kind, f.file, f.threshold]), [
     ['over-limit', 'openspec/changes/new/', 20],
