@@ -318,3 +318,11 @@ The checker SHALL skip a backtick code span that runs over 2 or more lines of on
 - **WHEN** proposal.md says `Run ` and a code span over 2 lines that holds a listed word
 - **THEN** check reports nothing
 - **TEST** `test/limits.test.mjs::The checker SHALL skip a backtick code span that runs over 2 or more lines of one paragraph when it looks for vague words.`
+
+### Requirement: Comments and fences in order
+The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.
+
+#### Scenario: Comments and fences in order
+- **WHEN** a comment holds a fence opener, and line 4 says `We should ship soon.`
+- **THEN** check reports `should` and `soon` on line 4
+- **TEST** `test/limits.test.mjs::The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.`

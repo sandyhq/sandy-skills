@@ -139,17 +139,28 @@ export function readLimits(configText) {
   return limits;
 }
 
-/** The lines of a Markdown file with fenced code blocks and HTML comments blanked; line numbers stay. */
+/** The lines of a Markdown file with fenced code and HTML comments blanked, read in document order; line numbers stay. */
 function proseLines(text) {
   const out = [];
   let fence = null;
+  let comment = false;
   for (const line of String(text).split('\n')) {
     const m = /^\s*(`{3,}|~{3,})/.exec(line);
     if (fence) { if (m && m[1][0] === fence[0] && m[1].length >= fence.length) fence = null; out.push(''); continue; }
-    if (m) { fence = m[1]; out.push(''); continue; }
-    out.push(line);
+    if (m && !comment) { fence = m[1]; out.push(''); continue; }
+    let kept = '';
+    let rest = line;
+    while (rest) {
+      const at = rest.indexOf(comment ? '-->' : '<!--');
+      if (at < 0) { kept += comment ? ' '.repeat(rest.length) : rest; break; }
+      const end = at + (comment ? 3 : 4);
+      kept += comment ? ' '.repeat(end) : rest.slice(0, at) + '    ';
+      rest = rest.slice(end);
+      comment = !comment;
+    }
+    out.push(kept);
   }
-  return out.join('\n').replace(/<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, ' ')).split('\n');
+  return out;
 }
 
 const TEST_LINE = /^\s*-\s+\*\*TEST\*\*/;

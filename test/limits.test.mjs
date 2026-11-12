@@ -154,6 +154,15 @@ test('The checker SHALL skip a backtick code span that runs over 2 or more lines
   assert.deepEqual(open.map((f) => [f.line, f.word]), [[1, 'some'], [3, 'soon']], 'a blank line ends the paragraph');
 });
 
+test('The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.', () => {
+  const F = '\x60\x60\x60';
+  const hits = (text) => found(run([change({ 'proposal.md': text })])).map((f) => [f.line, f.word]);
+  assert.deepEqual(hits('<!-- Disabled example\n' + F + '\n-->\nWe should ship soon.'), [[4, 'should'], [4, 'soon']]);
+  assert.deepEqual(hits(F + '\n<!-- not a comment\n' + F + '\nWe should go.'), [[4, 'should']]);
+  assert.deepEqual(hits('a <!-- maybe --> b <!-- soon\n' + F + ' -->some'), [[2, 'some']]);
+  assert.equal(countWords('<!-- x\n' + F + '\n-->\nfour words after it'), 4);
+});
+
 test('If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.', () => {
   const flow = readLimits('sandy-skills:\n  limits:\n    proposal: { warn: 100 }\n');
   assert.deepEqual(flow, { ...DEFAULTS, proposal: { warn: 100, error: 225 }, vagueWords: DEFAULT_VAGUE_WORDS });
