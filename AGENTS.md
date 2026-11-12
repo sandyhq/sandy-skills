@@ -18,7 +18,7 @@ Engineering standards, the `proven` OpenSpec schema, the agent skills and the `s
 ```sh
 pnpm install
 pnpm exec openspec validate --all --strict
-mkdir -p reports && node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/junit.xml test/
+mkdir -p reports && node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/junit.xml 'test/*.test.mjs'
 node bin/sandy-skills.mjs check --junit reports/junit.xml
 scripts/smoke-install.sh   # before a release
 ```
