@@ -86,3 +86,27 @@ The checker SHALL read diagram blocks only from marker lines outside code fences
 - **WHEN** markers sit in a code fence, under node_modules or in an archived change, and a repo has no other block
 - **THEN** check reports no diagram finding
 - **TEST** `test/diagram.test.mjs::The checker SHALL read diagram blocks only from marker lines outside code fences in Markdown files outside .git, node_modules and openspec/changes/archive.`
+
+### Requirement: Distinct ids
+The diagram SHALL give parts with different ids different Mermaid ids.
+
+#### Scenario: Distinct ids
+- **WHEN** parts whose ids differ only in characters outside a-z and 0-9, such as a.1 and a-46-1
+- **THEN** each gets its own node
+- **TEST** `test/diagram.test.mjs::The diagram SHALL give parts with different ids different Mermaid ids.`
+
+### Requirement: Indented fences
+The checker SHALL treat a line indented by up to three spaces as a code fence when CommonMark does, both to open and to close it.
+
+#### Scenario: Indented fences
+- **WHEN** a marked block sits inside a fence opened by an indented line, or follows a fence closed by an indented line
+- **THEN** the first is neither checked nor written, the second is
+- **TEST** `test/diagram.test.mjs::The checker SHALL treat a line indented by up to three spaces as a code fence when CommonMark does, both to open and to close it.`
+
+### Requirement: Titles as written
+The diagram SHALL write each title so that Mermaid shows it exactly as the spec writes it.
+
+#### Scenario: Titles as written
+- **WHEN** a title contains #35;, #quot;, a quote or a tag
+- **THEN** the label holds them as Mermaid entities that show the title unchanged
+- **TEST** `test/diagram.test.mjs::The diagram SHALL write each title so that Mermaid shows it exactly as the spec writes it.`

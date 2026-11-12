@@ -5,15 +5,21 @@ import { join, relative, sep } from 'node:path';
 export const ALL = 'all';
 const START_RE = /^<!--\s*sandy-skills diagram:\s*(\S+)\s*-->\s*$/;
 const END_RE = /^<!--\s*\/sandy-skills diagram\s*-->\s*$/;
-const FENCE_RE = /^(`{3,}|~{3,})/;
+// CommonMark: a fence is indented by at most three spaces; a backtick fence's info string has no backtick.
+const OPEN_FENCE_RE = /^ {0,3}(`{3,}(?!.*`)|~{3,})/;
+const CLOSE_FENCE_RE = /^ {0,3}(`{3,}|~{3,})[ \t]*$/;
 const SKIP_DIRS = ['.git', 'node_modules', 'openspec/changes/archive'];
 
-/** A Mermaid id for a part id: '-' becomes '_', '/' '__', anything else its code; the p_ prefix keeps clear of keywords like end. */
+/**
+ * A Mermaid id for a part id: every character outside [a-z0-9], '_' included, becomes _<hex code>_, so two ids
+ * never share a Mermaid id; the p_ prefix keeps clear of keywords like end.
+ */
 export function mermaidId(id) {
-  return 'p_' + String(id).replace(/[^a-z0-9]/g, (c) => (c === '-' ? '_' : c === '/' ? '__' : `_${c.codePointAt(0)}_`));
+  return 'p_' + String(id).replace(/[^a-z0-9]/gu, (c) => `_${c.codePointAt(0).toString(16)}_`);
 }
 
-const label = (text) => '"' + String(text).replace(/"/g, '#quot;') + '"';
+/** A quoted label Mermaid shows as written: '#' first, since Mermaid reads #name; and #35; as entities, then quote and tags. */
+export const label = (text) => '"' + String(text).replace(/#/g, '#35;').replace(/"/g, '#quot;').replace(/</g, '#lt;').replace(/>/g, '#gt;') + '"';
 const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 /**
@@ -93,10 +99,10 @@ export function findBlocks(text) {
     if (open) {
       if (END_RE.test(line)) { blocks.push({ ...open, end: offset, content: text.slice(open.start, offset), closed: true }); open = null; }
     } else if (fence) {
-      const m = FENCE_RE.exec(line);
-      if (m && m[1][0] === fence[0] && m[1].length >= fence.length && line.trim() === m[1]) fence = null;
+      const m = CLOSE_FENCE_RE.exec(line);
+      if (m && m[1][0] === fence[0] && m[1].length >= fence.length) fence = null;
     } else {
-      const m = FENCE_RE.exec(line);
+      const m = OPEN_FENCE_RE.exec(line);
       const s = START_RE.exec(line);
       if (m) fence = m[1];
       else if (s) open = { id: s[1], line: i + 1, start: Math.min(next, text.length), eol: raw.endsWith('\r') ? '\r\n' : '\n' };

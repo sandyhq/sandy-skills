@@ -33,12 +33,12 @@ This repo's own parts:
 <!-- sandy-skills diagram: all -->
 ```mermaid
 flowchart LR
-  subgraph p_sandy_skills["sandy-skills"]
+  subgraph p_sandy_2d_skills["sandy-skills"]
     subgraph p_cli["cli"]
       p_diagram["diagram"]
       p_init["init"]
     end
-    p_proven_schema["proven-schema"]
+    p_proven_2d_schema["proven-schema"]
     p_skills["skills"]
   end
   p_skills -.->|read-only| p_cli

@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { loadSpecs } from '../src/openspec.mjs';
 import { parsePart } from '../src/parts.mjs';
-import { renderDiagram } from '../src/diagram.mjs';
+import { label, renderDiagram } from '../src/diagram.mjs';
 import { TODAY } from './helpers.mjs';
 
 const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
@@ -47,6 +47,7 @@ function repo(files = {}) {
   return root;
 }
 const run = (root, ...args) => spawnSync(process.execPath, [BIN, ...args, '--root', root], { encoding: 'utf8' });
+const bare = (id, title = id) => ({ id, title, partOf: null, status: 'active', seams: [] });
 const check = (root) => {
   const r = run(root, 'check', '--specs', specsFile, '--today', TODAY, '--format', 'json');
   return { status: r.status, findings: JSON.parse(r.stdout).findings.filter((f) => f.file) };
@@ -158,4 +159,37 @@ test('The checker SHALL read diagram blocks only from marker lines outside code 
   });
   assert.deepEqual(check(root), { status: 0, findings: [] });
   assert.equal(run(root, 'diagram', '--write', '--specs', specsFile).stdout, '');
+});
+
+test('The diagram SHALL give parts with different ids different Mermaid ids.', () => {
+  const ids = ['a.1', 'a-46-1', 'a_46_1', 'a-2e-1', 'a/b', 'a-b', 'a_b', 'end', 'Up'];
+  const lines = renderDiagram(ids.map((id) => bare(id))).split('\n').slice(1, -1);
+  assert.equal(lines.length, ids.length);
+  assert.equal(new Set(lines.map((l) => l.trim().split('[')[0])).size, ids.length);
+  for (const l of lines) assert.match(l, /^  p_[a-z0-9_]+\[/);
+});
+
+test('The checker SHALL treat a line indented by up to three spaces as a code fence when CommonMark does, both to open and to close it.', () => {
+  const example = (open, close) => `${open}\n${block('all', STALE)}${close}\n\n`;
+  const hidden = '# Examples\n\n' + example('   ```md', '```') + example(' ~~~', '   ~~~~') + example('  ````', '```\n````') + example('~~~', '```\n  ~~~');
+  const root = repo({ 'docs/examples.md': hidden });
+  assert.deepEqual(check(root), { status: 0, findings: [] }, 'opened by an indented fence: not a block');
+  assert.equal(run(root, 'diagram', '--write', '--specs', specsFile).stdout, '');
+  assert.equal(readFileSync(join(root, 'docs/examples.md'), 'utf8'), hidden);
+
+  const after = '# Doc\n\n~~~~markdown\nexample\n   ~~~~\n\n```md\nx\n  ```\n\n' + block('all', STALE);
+  const root2 = repo({ 'docs/doc.md': after, 'docs/four.md': '    ```\n' + block('all', STALE) });
+  const { status, findings } = check(root2);
+  assert.equal(status, 1);
+  assert.deepEqual(findings.map((f) => [f.kind, f.file, f.line]), [['stale-diagram', 'docs/doc.md', 11], ['stale-diagram', 'docs/four.md', 2]], 'closed by an indented fence: the next block counts; four spaces open no fence');
+  assert.equal(run(root2, 'diagram', '--write', '--specs', specsFile).stdout, 'docs/doc.md\ndocs/four.md\n');
+  assert.deepEqual(check(root2), { status: 0, findings: [] });
+});
+
+test('The diagram SHALL write each title so that Mermaid shows it exactly as the spec writes it.', () => {
+  assert.equal(label('A #35; B'), '"A #35;35; B"');
+  assert.equal(label('A #quot; B'), '"A #35;quot; B"');
+  assert.equal(label('say "hi" #1'), '"say #quot;hi#quot; #35;1"');
+  assert.equal(label('A <b>bold</b> B'), '"A #lt;b#gt;bold#lt;/b#gt; B"');
+  assert.equal(renderDiagram([bare('a', 'A #35; B')]), 'flowchart LR\n  p_a["A #35;35; B"]\n');
 });
