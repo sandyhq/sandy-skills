@@ -1,5 +1,5 @@
 {
-  "name": "sandy-skills",
+  "name": "@sandyhq/sandy-skills",
   "version": "0.1.0",
   "description": "Engineering standards for repos where people and AI agents build together: the proven OpenSpec schema, agent skills and a checker that computes what is proven.",
   "keywords": ["openspec", "spec-driven", "agent-skills", "testing", "releasability"],
@@ -11,6 +11,7 @@
   "bin": { "sandy-skills": "bin/sandy-skills.mjs" },
   "files": ["bin/", "src/", "skills/", "openspec/schemas/proven/", "standards/"],
   "engines": { "node": ">=22.12" },
+  "publishConfig": { "access": "public" },
   "dependencies": { "@fission-ai/openspec": "^2.0.0" },
   "scripts": {
     "test": "node --test 'test/*.test.mjs'"

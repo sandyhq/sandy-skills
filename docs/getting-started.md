@@ -7,14 +7,14 @@ Set up a repo with OpenSpec, the proven schema and the skills. You need Node 22.
 Per repo, as a dev dependency, so the lockfile pins the version:
 
 ```sh
-npm install --save-dev sandy-skills @fission-ai/openspec
-pnpm add --save-dev sandy-skills @fission-ai/openspec
-bun add --dev sandy-skills @fission-ai/openspec
+npm install --save-dev @sandyhq/sandy-skills @fission-ai/openspec
+pnpm add --save-dev @sandyhq/sandy-skills @fission-ai/openspec
+bun add --dev @sandyhq/sandy-skills @fission-ai/openspec
 ```
 
-`sandy-skills` brings OpenSpec along, but installing it next to it puts `openspec` on the package manager's path, and both then use the same version. Run the CLIs through the package manager: `npx sandy-skills`, `pnpm exec sandy-skills` or `bunx sandy-skills` (the same for `openspec`).
+The package `@sandyhq/sandy-skills` installs the command `sandy-skills` and brings OpenSpec along, but installing it next to it puts `openspec` on the package manager's path, and both then use the same version. Run the CLIs through the package manager: `npx sandy-skills`, `pnpm exec sandy-skills` or `bunx sandy-skills` (the same for `openspec`).
 
-To try it without installing: `npx sandy-skills init`, `pnpm dlx sandy-skills init` or `bunx sandy-skills init`. Installing globally also works (`npm install -g`, `pnpm add -g`, `bun add -g`), but each repo then depends on what each machine has installed.
+To try it without installing, name the package: `npx @sandyhq/sandy-skills init`, `pnpm dlx @sandyhq/sandy-skills init` or `bunx @sandyhq/sandy-skills init`. Installing globally also works (`npm install -g`, `pnpm add -g`, `bun add -g`), but each repo then depends on what each machine has installed.
 
 ## 2. Set up a repo
 

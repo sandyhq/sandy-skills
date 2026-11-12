@@ -1,4 +1,4 @@
-# Publishes the package when a tag v<version> is pushed.
+# Stages the package on npm when a tag v<version> is pushed; a maintainer approves it with 2FA (npm stage approve).
 # Build, tests and packing run on a boat VM. Publishing runs on a GitHub-hosted runner,
 # because npm trusted publishing (OIDC, no token, provenance) does not accept self-hosted runners.
 # Run it by hand (workflow_dispatch) for a dry run that publishes nothing.
@@ -58,13 +58,13 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-      - name: npm 11.5.1 or newer, needed for trusted publishing
-        run: npm install -g npm@^11.5.1 && npm --version
+      - name: npm 11.15.0 or newer, needed for staged and trusted publishing
+        run: npm install -g npm@^11.15.0 && npm --version
       - uses: actions/download-artifact@v4
         with:
           name: package
-      - name: Publish
+      - name: Stage
         run: |
           tgz=$(ls *.tgz)
-          if [ "$GITHUB_REF_TYPE" = tag ]; then npm publish "$tgz" --access public
-          else npm publish "$tgz" --access public --dry-run; fi
+          if [ "$GITHUB_REF_TYPE" = tag ]; then npm stage publish "$tgz" --access public
+          else npm stage publish "$tgz" --access public --dry-run; fi

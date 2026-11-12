@@ -1,6 +1,6 @@
 # sandy-skills
 
-Engineering standards, the `proven` OpenSpec schema, the agent skills and the `sandy-skills` CLI, published as the npm package `sandy-skills`. Public: no company names, customer data, hosts or secrets.
+Engineering standards, the `proven` OpenSpec schema, the agent skills and the `sandy-skills` CLI, published as the npm package `@sandyhq/sandy-skills`. Public: no company names, customer data, hosts or secrets.
 
 ## Layout
 
@@ -30,9 +30,10 @@ Run the first four before a commit. A test's name is the claim sentence its spec
 CI and the build run on boat VMs (`runs-on: boat`); only the publish job runs on `ubuntu-latest`, because npm trusted publishing does not accept self-hosted runners. The `npm` environment allows only `v*` tags and `main`.
 
 1. Bump `version` in `package.json`, commit, push.
-2. Tag `v<version>` and push the tag. `.github/workflows/release.yml` tests, packs and publishes with provenance. Running it by hand on `main` is a dry run.
+2. Tag `v<version>` and push the tag. `.github/workflows/release.yml` tests, packs and stages the tarball on npm (`npm stage publish`, OIDC, provenance). Running it by hand on `main` is a dry run.
+3. A maintainer of the sandyhq npm org checks and approves it with 2FA: `npm stage list @sandyhq/sandy-skills`, `npm stage approve <stage-id>`.
 
-First release only: npm can trust a workflow only for a package that exists. Publish 0.1.0 once by hand (`npm login`, `npm publish --access public`), then on npmjs.com under the package's settings add the trusted publisher: owner `sandyhq`, repo `sandy-skills`, workflow `release.yml`, environment `npm`. Then set publishing access to require 2FA and disallow tokens.
+First release only: npm can trust a workflow only for a package that exists. From a checkout, `npm login` and `npm stage publish --access public` create `@sandyhq/sandy-skills` and stage 0.1.0; approve it as in step 3. Then on npmjs.com, package settings, add the trusted publisher: owner `sandyhq`, repo `sandy-skills`, workflow `release.yml`, environment `npm`, staging only. Its first use must come within two days.
 
 ## Rules
 
