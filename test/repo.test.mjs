@@ -7,7 +7,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 const root = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(root + p, 'utf8');
 const skills = readdirSync(root + 'skills', { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
-const [cmd, ...pre] = (process.env.OPENSPEC_BIN || 'openspec').split(/\s+/);
+import { openspecCommand } from '../src/openspec.mjs';
+const [cmd, ...pre] = openspecCommand(root);
 const openspec = (...args) => spawnSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8' });
 const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }).stdout;
 const hasOpenspec = openspec('--version').status === 0;
@@ -19,7 +20,8 @@ test("The repository SHALL hold the standards, the proven schema, the sandy-skil
   for (const step of ['validate --all --strict', '--test-reporter=junit', 'sandy-skills.mjs check']) assert.ok(ci.includes(step), step);
 });
 
-test("The proven schema SHALL pass OpenSpec schema validation and tell agents to write each part with a metadata line, a Contract and TEST lines.", { skip: hasOpenspec ? false : 'openspec not installed' }, () => {
+test("The proven schema SHALL pass OpenSpec schema validation and tell agents to write each part with a metadata line, a Contract and TEST lines.", () => {
+  assert.ok(hasOpenspec, 'OpenSpec runs');
   const r = openspec('schema', 'validate', 'proven');
   assert.equal(r.status, 0, r.stdout + r.stderr);
   const schema = read('openspec/schemas/proven/schema.yaml');
