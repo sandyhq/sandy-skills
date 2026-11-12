@@ -198,3 +198,11 @@ validate SHALL run openspec validate with its arguments and then check with --ju
 - **WHEN** validate runs with OpenSpec arguments, --strict and --junit, and OpenSpec or check fails
 - **THEN** OpenSpec gets its arguments and --strict, check gets --junit and --strict, both outputs are printed and the exit code is non-zero
 - **TEST** `test/cli.test.mjs::validate SHALL run openspec validate with its arguments and then check with --junit, --out and --strict, print both outputs, and exit non-zero when either fails.`
+
+### Requirement: Signals
+If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHALL pass the signal to OpenSpec, wait until OpenSpec ends and exit with its exit code or signal.
+
+#### Scenario: Signals
+- **WHEN** only sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs through it
+- **THEN** OpenSpec gets the signal and is gone when sandy-skills exits, and sandy-skills exits as OpenSpec did: with its code when it handled the signal, by the signal when it did not
+- **TEST** `test/cli.test.mjs::If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHALL pass the signal to OpenSpec, wait until OpenSpec ends and exit with its exit code or signal.`

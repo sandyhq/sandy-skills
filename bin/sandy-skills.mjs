@@ -76,7 +76,7 @@ function runCheck(root, opts, today) {
 }
 
 /** openspec validate with every argument but --junit and --out, then check; --strict goes to both. */
-function validate(argv) {
+async function validate(argv) {
   const toOpenspec = [];
   const opts = { junit: [] };
   for (let i = 0; i < argv.length; i++) {
@@ -90,7 +90,7 @@ function validate(argv) {
     }
   }
   const root = process.cwd();
-  const validated = passOpenspec(root, ['validate', ...toOpenspec]);
+  const validated = await passOpenspec(root, ['validate', ...toOpenspec]);
   let checked;
   try { checked = runCheck(root, opts, todayUtc()); }
   catch (e) { console.error(`sandy-skills check: ${e.message}`); checked = 2; }
@@ -99,7 +99,7 @@ function validate(argv) {
 
 const OWN = new Set(['init', 'update', 'check', 'validate', 'diagram', 'hash', 'confirm']);
 
-function main(argv) {
+async function main(argv) {
   const [first, ...after] = argv;
   if (first === 'openspec') return passOpenspec(process.cwd(), after);
   if (first === 'validate') return validate(after);
@@ -157,5 +157,7 @@ function main(argv) {
   return 2;
 }
 
-try { process.exitCode = main(process.argv.slice(2)); }
-catch (e) { console.error(`sandy-skills: ${e.message}`); process.exitCode = 2; }
+main(process.argv.slice(2)).then(
+  (code) => { process.exitCode = code; },
+  (e) => { console.error(`sandy-skills: ${e.message}`); process.exitCode = 2; },
+);

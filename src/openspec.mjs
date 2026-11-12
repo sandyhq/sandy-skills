@@ -1,8 +1,9 @@
 // The only I/O against OpenSpec: its own CLI parses the Markdown, so sandy-skills never does, except for the
 // spec's `# ` heading, which OpenSpec's JSON does not carry.
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { constants } from 'node:os';
 import { dirname, join } from 'node:path';
 
 /** The package directory of @fission-ai/openspec as resolved from `from`, or null. */
@@ -36,12 +37,27 @@ export function runOpenspec(root, args, { inherit = false } = {}) {
   return execFileSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8', stdio: inherit ? 'inherit' : ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
 }
 
-/** Runs OpenSpec in root with the caller's stdin, stdout and stderr; returns its exit code (1 if a signal ended it). */
+const FORWARDED = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+
+/**
+ * Runs OpenSpec in root with the caller's stdin, stdout and stderr and resolves to its exit code. While it runs,
+ * SIGINT, SIGTERM and SIGHUP go on to it; if a signal ends it, this process ends itself by the same signal.
+ */
 export function passOpenspec(root, args) {
   const [cmd, ...pre] = openspecCommand(root);
-  const r = spawnSync(cmd, [...pre, ...args], { cwd: root, stdio: 'inherit' });
-  if (r.error) throw new Error(`cannot run OpenSpec (${cmd}): ${r.error.message}`);
-  return r.status ?? 1;
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, [...pre, ...args], { cwd: root, stdio: 'inherit' });
+    const forward = (signal) => child.kill(signal);
+    for (const s of FORWARDED) process.on(s, forward);
+    const stopForwarding = () => { for (const s of FORWARDED) process.off(s, forward); };
+    child.on('error', (e) => { stopForwarding(); reject(new Error(`cannot run OpenSpec (${cmd}): ${e.message}`)); });
+    child.on('exit', (code, signal) => {
+      stopForwarding();
+      if (!signal) return resolve(code);
+      process.kill(process.pid, signal);
+      resolve(128 + (constants.signals[signal] ?? 0));
+    });
+  });
 }
 
 const json = (root, args) => { const out = runOpenspec(root, args); return JSON.parse(out.slice(out.indexOf('{'))); };

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -133,4 +133,37 @@ test("validate SHALL run openspec validate with its arguments and then check wit
   assert.equal(toFile.status, 0, toFile.stderr);
   assert.deepEqual(passed(toFile)[0], ['validate']);
   assert.match(readFileSync(out, 'utf8'), /\*\*Releasable\*\*/);
+});
+
+// A stand-in OpenSpec that keeps running: prints its pid, and with FAKE_HANDLE exits with that code on a signal.
+const waiting = join(dir, 'waiting-openspec.mjs');
+writeFileSync(waiting, `if (process.argv[2] === 'list') { console.log('{"specs":[]}'); process.exit(0); }
+if (process.env.FAKE_HANDLE) for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => process.exit(Number(process.env.FAKE_HANDLE)));
+console.log('pid=' + process.pid);
+setInterval(() => {}, 1000);
+`);
+const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+
+/** Runs sandy-skills with the waiting OpenSpec, signals only sandy-skills, and returns how both ended. */
+async function signalWrapper(args, signal, env = {}) {
+  const wrapper = spawn(process.execPath, [BIN, ...args], { cwd: dir, detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, OPENSPEC_BIN: `${process.execPath} ${waiting}`, ...env } });
+  const ended = new Promise((resolve) => wrapper.on('exit', (code, sig) => resolve({ code, signal: sig })));
+  let out = '';
+  const child = await new Promise((resolve) => wrapper.stdout.on('data', (b) => { out += b; const m = /pid=(\d+)/.exec(out); if (m) resolve(Number(m[1])); }));
+  wrapper.kill(signal);
+  const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), 5000).unref());
+  const result = await Promise.race([ended, timeout]);
+  const childAlive = alive(child);
+  if (childAlive) process.kill(child, 'SIGKILL');
+  if (result === 'timeout') wrapper.kill('SIGKILL');
+  return { ...(result === 'timeout' ? { timeout: true } : result), childAlive };
+}
+
+test("If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHALL pass the signal to OpenSpec, wait until OpenSpec ends and exit with its exit code or signal.", async () => {
+  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+    assert.deepEqual(await signalWrapper(['watch'], signal, { FAKE_HANDLE: '3' }), { code: 3, signal: null, childAlive: false }, `${signal}, handled by OpenSpec`);
+    assert.deepEqual(await signalWrapper(['watch'], signal), { code: null, signal, childAlive: false }, `${signal}, not handled`);
+  }
+  assert.deepEqual(await signalWrapper(['openspec', 'init'], 'SIGTERM'), { code: null, signal: 'SIGTERM', childAlive: false }, 'sandy-skills openspec');
+  assert.deepEqual(await signalWrapper(['validate', '--all'], 'SIGTERM'), { code: null, signal: 'SIGTERM', childAlive: false }, 'validate');
 });
