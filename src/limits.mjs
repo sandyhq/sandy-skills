@@ -216,7 +216,8 @@ export function vagueWords(text, words) {
   return hits;
 }
 
-const REQUIREMENT = /^###\s+Requirement:/gm;
+const REQUIREMENT = /^###\s+Requirement:/;
+const requirementCount = (text) => proseLines(text).filter((l) => REQUIREMENT.test(l)).length;
 
 /**
  * Findings long-change (warning), over-limit (error) and vague-word (error) for open changes.
@@ -236,7 +237,7 @@ export function changeFindings(changes, limits = readLimits('')) {
       design: [`${change.dir}/design.md`, own('design.md'), 'words'],
       tasks: [`${change.dir}/tasks.md`, own('tasks.md'), 'words'],
       specs: [`${change.dir}/specs/`, specs.reduce((n, f) => n + words(f), 0), 'words'],
-      requirements: [`${change.dir}/specs/`, specs.reduce((n, f) => n + (f.text.match(REQUIREMENT) ?? []).length, 0), 'requirements'],
+      requirements: [`${change.dir}/specs/`, specs.reduce((n, f) => n + requirementCount(f.text), 0), 'requirements'],
     };
     for (const key of MEASURES) {
       const [file, count, unit] = measured[key];

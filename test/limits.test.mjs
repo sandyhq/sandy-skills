@@ -163,6 +163,14 @@ test('The checker SHALL read HTML comments and fences in document order, so a fe
   assert.equal(countWords('<!-- x\n' + F + '\n-->\nfour words after it'), 4);
 });
 
+test('The checker SHALL count only requirement headings outside fenced code and HTML comments.', () => {
+  const heads = (n) => Array(n).fill('### Requirement: Example').join('\n');
+  const text = requirements(6) + '\n\x60\x60\x60markdown\n' + heads(8) + '\n\x60\x60\x60\n<!--\n' + heads(8) + '\n-->\n';
+  assert.deepEqual(found(run([change({ 'specs/a/spec.md': text })])), [
+    { kind: 'long-change', severity: 'warning', file: 'openspec/changes/a/specs/', measured: 6, threshold: 5 },
+  ]);
+});
+
 test('If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.', () => {
   const flow = readLimits('sandy-skills:\n  limits:\n    proposal: { warn: 100 }\n');
   assert.deepEqual(flow, { ...DEFAULTS, proposal: { warn: 100, error: 225 }, vagueWords: DEFAULT_VAGUE_WORDS });

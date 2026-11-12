@@ -326,3 +326,11 @@ The checker SHALL read HTML comments and fences in document order, so a fence in
 - **WHEN** a comment holds a fence opener, and line 4 says `We should ship soon.`
 - **THEN** check reports `should` and `soon` on line 4
 - **TEST** `test/limits.test.mjs::The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.`
+
+### Requirement: Requirements in prose
+The checker SHALL count only requirement headings outside fenced code and HTML comments.
+
+#### Scenario: Requirements in prose
+- **WHEN** a delta spec has 1 requirement and 8 requirement headings in a code fence and a comment
+- **THEN** check counts 1 requirement
+- **TEST** `test/limits.test.mjs::The checker SHALL count only requirement headings outside fenced code and HTML comments.`
