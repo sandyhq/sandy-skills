@@ -2,14 +2,16 @@
 
 OpenSpec holds what the system must do; `sandy-skills check` computes from the tests what is proven. Agents follow the same loop through the skills (`spec-first`, `propose-change`, `confirm-part`, `learn-part`, `examine-part`, and OpenSpec's `openspec-*`). Commands below are shown bare; run them through your package manager ([getting started](getting-started.md#1-install)).
 
+One command does both: every command that sandy-skills does not own goes to OpenSpec unchanged, so `sandy-skills list --specs` is `openspec list --specs`. `openspec` itself still works the same.
+
 ## The loop
 
-1. **Find the part.** `openspec list --specs`, then `openspec show <id> --type spec`.
-2. **Propose a change.** `openspec new change <id>` creates `openspec/changes/<id>/` with the proven schema. `openspec status --change <id>` shows which artifact is next and `openspec instructions <artifact> --change <id>` how to write it: the proposal (why), delta specs, `design.md` (decisions), `tasks.md` (the claims as todo tests).
+1. **Find the part.** `sandy-skills list --specs`, then `sandy-skills show <id> --type spec`.
+2. **Propose a change.** `sandy-skills new change <id>` creates `openspec/changes/<id>/` with the proven schema. `sandy-skills status --change <id>` shows which artifact is next and `sandy-skills instructions <artifact> --change <id>` how to write it: the proposal (why), delta specs, `design.md` (decisions), `tasks.md` (the claims as todo tests).
 3. **Write the claims as todo tests.** Each test's name is its claim sentence, word for word. The spec's TEST line names it as `<path>::<test name>`.
-4. **Build** until the tests pass. `openspec validate --all --strict` checks the Markdown, and `sandy-skills diagram --write` refreshes the pictures of parts and seams in the docs.
-5. **Prove.** Run the tests with a JUnit reporter, then `sandy-skills check --junit reports/`.
-6. **Archive** after the merge: `openspec archive <id>` merges the delta specs into `openspec/specs/`; then `sandy-skills diagram --write`.
+4. **Build** until the tests pass. `sandy-skills openspec validate --all --strict` checks the Markdown alone, and `sandy-skills diagram --write` refreshes the pictures of parts and seams in the docs.
+5. **Prove.** Run the tests with a JUnit reporter, then `sandy-skills validate --all --strict --junit reports/`: OpenSpec's validation, then `check`.
+6. **Archive** after the merge: `sandy-skills archive <id>` merges the delta specs into `openspec/specs/`; then `sandy-skills diagram --write`.
 
 A person confirms a part with the `confirm-part` skill: `sandy-skills hash <id>` gives the contract hash, `sandy-skills confirm <id> We <who>` prints the CONFIRMED line they commit.
 
@@ -29,11 +31,14 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 | `init [--tools LIST] [--skills-dir DIR]` | Sets up OpenSpec if missing, installs the schema as default and the skills |
 | `update [--skills-dir DIR]` | Installs schema and skills again from the installed version |
 | `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams and the releasability report; exit 1 if not releasable |
+| `validate [<openspec validate args>] [--junit FILE\|DIR] [--out FILE] [--strict]` | `openspec validate` with the other arguments, then `check` with `--junit`, `--out` and `--strict` (`--strict` goes to both); prints both, non-zero if either fails |
 | `diagram [<id>] [--write]` | A Mermaid flowchart of every part, or of one part, what is below it and its neighbours; `--write` refreshes every marked block in the repo's Markdown ([diagrams](https://github.com/sandyhq/sandy-skills/blob/main/standards/diagrams.md)) |
 | `hash <id>` | The contract hash of a part |
 | `confirm <id> <I\|We\|They> <who> [--days N]` | The CONFIRMED line, valid at most 90 days; I needs a passed exam |
+| `openspec <args>` | OpenSpec with exactly these arguments: its own `init`, `update` and `--help`, whose names sandy-skills takes |
+| any other command | Goes to OpenSpec unchanged, with its input, output and exit code: `list`, `show`, `new change`, `status`, `instructions`, `archive`, … |
 
-`OPENSPEC_BIN` overrides which OpenSpec it runs; by default the repo's own install, then the one it brings.
+`OPENSPEC_BIN` overrides which OpenSpec it runs; by default the repo's own install, then the one it brings. `sandy-skills --version` is sandy-skills' version, `sandy-skills version` OpenSpec's.
 
 ## JUnit reports
 
@@ -48,9 +53,8 @@ GitHub Actions with pnpm (npm: `npm ci` and `npx`; bun: `bun install --frozen-lo
 - uses: actions/setup-node@v4
   with: { node-version: 22, cache: pnpm }
 - run: pnpm install --frozen-lockfile
-- run: pnpm exec openspec validate --all --strict
 - run: <your tests with a JUnit reporter into reports/>
-- run: pnpm exec sandy-skills check --junit reports/ --out reports/releasability.md
+- run: pnpm exec sandy-skills validate --all --strict --junit reports/ --out reports/releasability.md
   if: always()
 - uses: actions/upload-artifact@v4
   if: always()

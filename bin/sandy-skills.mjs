@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// sandy-skills: installs the proven schema and skills per repo, and computes lights, drift and a
-// releasability report from OpenSpec specs plus JUnit reports.
+// sandy-skills: installs the proven schema and skills per repo, computes lights, drift and a releasability
+// report from OpenSpec specs plus JUnit reports, and passes every other command to OpenSpec.
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { parsePart } from '../src/parts.mjs';
 import { parseJUnit } from '../src/junit.mjs';
 import { check } from '../src/check.mjs';
 import { renderMarkdown } from '../src/report.mjs';
-import { loadSpec, loadSpecs, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
+import { loadSpec, loadSpecs, passOpenspec, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
 import { install, PACKAGE } from '../src/install.mjs';
 import { parseExamined, examAllows } from '../src/exam.mjs';
 import { ALL, findBlocks, refreshBlocks, renderDiagram, repoBlocks, markdownFiles } from '../src/diagram.mjs';
@@ -16,17 +16,24 @@ const USAGE = `Usage:
   sandy-skills init [--tools LIST] [--skills-dir DIR]... [--root DIR]
   sandy-skills update [--skills-dir DIR]... [--root DIR]
   sandy-skills check [--root DIR] [--junit FILE|DIR]... [--today YYYY-MM-DD] [--format md|json] [--out FILE] [--strict] [--specs FILE]
+  sandy-skills validate [<openspec validate args>] [--junit FILE|DIR]... [--out FILE] [--strict]
   sandy-skills diagram [<spec-id>] [--write] [--root DIR]
   sandy-skills hash <spec-id> [--root DIR]
   sandy-skills confirm <spec-id> <I|We|They> <who> [--days N] [--today YYYY-MM-DD] [--root DIR]
+  sandy-skills openspec <args>
   sandy-skills --version
+
+Every other command goes to OpenSpec unchanged (sandy-skills list --specs is openspec list --specs).
+sandy-skills openspec <args> reaches OpenSpec's own init, update and help (sandy-skills openspec --help).
 
 init sets up OpenSpec if the repo has none (--tools goes to openspec init), then installs the proven
 schema as default and the skills next to OpenSpec's. update installs them again from this version.
 check exits 1 when the result is not releasable (any error; with --strict also any warning), and reports
-diagram blocks that differ from the specs. diagram prints a Mermaid flowchart of every part, or of one part,
-what is below it and its neighbours; --write refreshes every <!-- sandy-skills diagram: <id|all> --> block
-in the repo's Markdown and lists the files it changed.
+diagram blocks that differ from the specs. validate runs openspec validate with its arguments, then check
+with --junit, --out and --strict (--strict goes to both), and exits non-zero when either fails.
+diagram prints a Mermaid flowchart of every part, or of one part, what is below it and its neighbours;
+--write refreshes every <!-- sandy-skills diagram: <id|all> --> block in the repo's Markdown and lists
+the files it changed.
 confirm for the I side needs a passed exam on the current contract in .learn/<who>/exams/<spec-id>.md.`;
 
 function args(argv) {
@@ -55,7 +62,48 @@ function xmlFiles(path) {
 const todayUtc = () => new Date().toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10) + n)).toISOString().slice(0, 10);
 
+/** Lights, drift and the report; returns 0 when releasable, else 1. */
+function runCheck(root, opts, today) {
+  const specs = opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root);
+  const tests = opts.junit.flatMap(xmlFiles).flatMap((f) => parseJUnit(readFileSync(f, 'utf8')));
+  const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root) });
+  if (opts.strict && result.summary.warnings > 0) result.summary.releasable = false;
+  const text = (opts.format ?? 'md') === 'json' ? JSON.stringify(result, null, 2) + '\n' : renderMarkdown(result) + '\n';
+  if (opts.out) { mkdirSync(dirname(resolve(opts.out)), { recursive: true }); writeFileSync(opts.out, text); }
+  else process.stdout.write(text);
+  if (opts.out) console.error(`${result.summary.releasable ? 'releasable' : 'not releasable'}: ${result.summary.errors} errors, ${result.summary.warnings} warnings -> ${opts.out}`);
+  return result.summary.releasable ? 0 : 1;
+}
+
+/** openspec validate with every argument but --junit and --out, then check; --strict goes to both. */
+function validate(argv) {
+  const toOpenspec = [];
+  const opts = { junit: [] };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--junit' || a === '--out') {
+      if (i + 1 >= argv.length) throw new Error(`${a} needs a value`);
+      if (a === '--junit') opts.junit.push(argv[++i]); else opts.out = argv[++i];
+    } else {
+      if (a === '--strict') opts.strict = true;
+      toOpenspec.push(a);
+    }
+  }
+  const root = process.cwd();
+  const validated = passOpenspec(root, ['validate', ...toOpenspec]);
+  let checked;
+  try { checked = runCheck(root, opts, todayUtc()); }
+  catch (e) { console.error(`sandy-skills check: ${e.message}`); checked = 2; }
+  return validated || checked;
+}
+
+const OWN = new Set(['init', 'update', 'check', 'validate', 'diagram', 'hash', 'confirm']);
+
 function main(argv) {
+  const [first, ...after] = argv;
+  if (first === 'openspec') return passOpenspec(process.cwd(), after);
+  if (first === 'validate') return validate(after);
+  if (first !== undefined && !first.startsWith('-') && !OWN.has(first)) return passOpenspec(process.cwd(), argv);
   const opts = args(argv);
   const [command, ...rest] = opts.positional;
   if (opts.version) { console.log(JSON.parse(readFileSync(PACKAGE + 'package.json', 'utf8')).version); return 0; }
@@ -71,17 +119,7 @@ function main(argv) {
     if (command === 'init') console.log('\nNext: describe each part as the spec format says, then run sandy-skills check in CI.\nhttps://github.com/sandyhq/sandy-skills/blob/main/docs/usage.md');
     return 0;
   }
-  if (command === 'check') {
-    const specs = opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root);
-    const tests = opts.junit.flatMap(xmlFiles).flatMap((f) => parseJUnit(readFileSync(f, 'utf8')));
-    const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root) });
-    if (opts.strict && result.summary.warnings > 0) result.summary.releasable = false;
-    const text = (opts.format ?? 'md') === 'json' ? JSON.stringify(result, null, 2) + '\n' : renderMarkdown(result) + '\n';
-    if (opts.out) { mkdirSync(dirname(resolve(opts.out)), { recursive: true }); writeFileSync(opts.out, text); }
-    else process.stdout.write(text);
-    if (opts.out) console.error(`${result.summary.releasable ? 'releasable' : 'not releasable'}: ${result.summary.errors} errors, ${result.summary.warnings} warnings -> ${opts.out}`);
-    return result.summary.releasable ? 0 : 1;
-  }
+  if (command === 'check') return runCheck(root, opts, today);
   if (command === 'diagram') {
     const parts = (opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root)).map(parsePart);
     if (!opts.write) { process.stdout.write(renderDiagram(parts, rest[0] ?? ALL)); return 0; }

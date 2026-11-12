@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Installs the packed package into empty repos with npm, pnpm and bun, then runs init and check there.
-# Proves that nothing needs a clone of this repo. Usage: scripts/smoke-install.sh [npm pnpm bun]
+# Installs the packed package into empty repos with npm, pnpm and bun, then runs init, check and OpenSpec's
+# commands through sandy-skills there. Proves that nothing needs a clone of this repo. Usage: scripts/smoke-install.sh [npm pnpm bun]
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 out=$(mktemp -d)
@@ -21,6 +21,16 @@ for pm in "${@:-npm pnpm bun}"; do
     test -L .claude/skills/spec-first
     "${run[@]}" check --today 2026-01-01 > report.md
     grep -q '^\*\*Releasable\*\*' report.md
+    mkdir -p openspec/specs/smoke
+    printf '%s\n' '# smoke Specification' '' '## Purpose' 'Proves that an installed sandy-skills runs OpenSpec, so that one command is enough.' '' \
+      'Kind: system · Part of: none · Carried by: smoke · Status: active · Code: package.json' '' '## Requirements' '' \
+      '### Requirement: Contract' 'The smoke repo SHALL run OpenSpec through sandy-skills.' '' '#### Scenario: Contract' \
+      '- **WHEN** sandy-skills runs an OpenSpec command' '- **THEN** OpenSpec answers' > openspec/specs/smoke/spec.md
+    "${run[@]}" list --specs | grep -q smoke
+    "${run[@]}" show smoke --type spec | grep -q 'Requirement: Contract'
+    "${run[@]}" validate --all --strict > validate.log
+    grep -q '^\*\*Releasable\*\*' validate.log
+    if "${run[@]}" no-such-command 2>/dev/null; then echo "an unknown command must fail"; exit 1; fi
     echo "ok: $p"
   done
 done

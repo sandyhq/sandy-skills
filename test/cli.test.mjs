@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spec, TODAY } from './helpers.mjs';
@@ -59,4 +59,78 @@ test("confirm SHALL print an I confirmation only when the person passed the exam
   assert.equal(ok.status, 0, ok.stderr);
   assert.match(ok.stdout, new RegExp(`^- \\*\\*CONFIRMED\\*\\* I by bo on ${TODAY}, expires \\S+, contract ${hash}`));
   assert.equal(sk('confirm', 'a', 'We', 'cy').status, 0, 'We needs no exam');
+});
+
+// A stand-in for the OpenSpec CLI: logs its arguments to stderr, serves the specs in FAKE_SPECS, echoes stdin
+// for `cat`, and exits with FAKE_EXIT.
+const fake = join(dir, 'fake-openspec.mjs');
+writeFileSync(fake, `import { readFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+process.stderr.write('openspec ' + JSON.stringify(args) + '\\n');
+const specs = process.env.FAKE_SPECS ? JSON.parse(readFileSync(process.env.FAKE_SPECS, 'utf8')) : [];
+if (args[0] === 'list') console.log(JSON.stringify({ specs: specs.map((s) => ({ id: s.id })) }));
+else if (args[0] === 'show') console.log(JSON.stringify(specs.find((s) => s.id === args[1])));
+else if (args[0] === 'cat') process.stdout.write(readFileSync(0));
+else console.log('openspec ran');
+if (args[0] !== 'list' && args[0] !== 'show') process.exitCode = Number(process.env.FAKE_EXIT ?? 0);
+`);
+const withFake = (args, env = {}, input) => spawnSync(process.execPath, [BIN, ...args], { cwd: dir, encoding: 'utf8', input, env: { ...process.env, OPENSPEC_BIN: `${process.execPath} ${fake}`, ...env } });
+const passed = (r) => [...r.stderr.matchAll(/^openspec (.*)$/gm)].map((m) => JSON.parse(m[1]));
+
+test("Every command that sandy-skills does not own SHALL run the OpenSpec CLI with the same arguments, input and output, and exit with its exit code.", () => {
+  for (const code of [0, 3, 7]) {
+    const r = withFake(['archive', 'c', '--yes', '--no-such-option'], { FAKE_EXIT: String(code) });
+    assert.equal(r.status, code, r.stderr);
+    assert.deepEqual(passed(r), [['archive', 'c', '--yes', '--no-such-option']]);
+    assert.equal(r.stdout, 'openspec ran\n');
+  }
+  const cat = withFake(['cat'], { FAKE_EXIT: '5' }, 'from stdin\n');
+  assert.equal(cat.status, 5);
+  assert.equal(cat.stdout, 'from stdin\n');
+  const real = spawnSync(process.execPath, [BIN, 'no-such-command'], { cwd: dir, encoding: 'utf8' });
+  assert.notEqual(real.status, 0, 'the real OpenSpec refuses an unknown command');
+  assert.match(real.stderr, /unknown command 'no-such-command'/);
+});
+
+test("sandy-skills openspec SHALL pass the rest of its arguments to the OpenSpec CLI, so that OpenSpec's own init, update and help stay reachable.", () => {
+  for (const args of [['init', '--tools', 'none'], ['update'], ['--help'], ['check', '--strict']]) {
+    const r = withFake(['openspec', ...args]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(passed(r), [args]);
+    assert.equal(r.stdout, 'openspec ran\n');
+  }
+  const help = spawnSync(process.execPath, [BIN, 'openspec', '--help'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(help.status, 0, help.stderr);
+  assert.match(help.stdout, /Usage: openspec/);
+});
+
+test("The help SHALL list the sandy-skills commands and say that every other command goes to OpenSpec.", () => {
+  const r = spawnSync(process.execPath, [BIN, '--help'], { encoding: 'utf8' });
+  assert.equal(r.status, 0);
+  for (const c of ['init', 'update', 'check', 'validate', 'diagram', 'hash', 'confirm', 'openspec']) assert.match(r.stdout, new RegExp(`^  sandy-skills ${c}\\b`, 'm'), c);
+  assert.match(r.stdout, /Every other command goes to OpenSpec unchanged/);
+});
+
+test("validate SHALL run openspec validate with its arguments and then check with --junit, --out and --strict, print both outputs, and exit non-zero when either fails.", () => {
+  const specs = join(dir, 'validate-specs.json');
+  writeFileSync(specs, JSON.stringify([spec('a', { tests: ['test/a.test.mjs::t'] })]));
+  const env = (code) => ({ FAKE_SPECS: specs, FAKE_EXIT: String(code) });
+  const ok = withFake(['validate', '--all', '--strict', '--junit', junit('passed'), '--no-color'], env(0));
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.deepEqual(passed(ok)[0], ['validate', '--all', '--strict', '--no-color']);
+  assert.match(ok.stdout, /^openspec ran\n/);
+  assert.match(ok.stdout, /\*\*Releasable\*\*/);
+  const openspecFails = withFake(['validate', '--all', '--junit', junit('passed')], env(4));
+  assert.equal(openspecFails.status, 4);
+  assert.match(openspecFails.stdout, /\*\*Releasable\*\*/, 'check runs even when OpenSpec fails');
+  const checkFails = withFake(['validate', '--all', '--junit', junit('failed')], env(0));
+  assert.equal(checkFails.status, 1);
+  assert.match(checkFails.stdout, /openspec ran[\s\S]*\| error \| a \| break \|/);
+  const strictFails = withFake(['validate', '--strict'], env(0));
+  assert.equal(strictFails.status, 1, 'check gets --strict: a missing test fails');
+  const out = join(dir, 'reports', 'releasability.md');
+  const toFile = withFake(['validate', '--junit', junit('passed'), '--out', out], env(0));
+  assert.equal(toFile.status, 0, toFile.stderr);
+  assert.deepEqual(passed(toFile)[0], ['validate']);
+  assert.match(readFileSync(out, 'utf8'), /\*\*Releasable\*\*/);
 });

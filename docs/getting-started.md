@@ -12,7 +12,9 @@ pnpm add --save-dev @sandyhq/sandy-skills @fission-ai/openspec
 bun add --dev @sandyhq/sandy-skills @fission-ai/openspec
 ```
 
-The package `@sandyhq/sandy-skills` installs the command `sandy-skills` and brings OpenSpec along, but installing it next to it puts `openspec` on the package manager's path, and both then use the same version. Run the CLIs through the package manager: `npx sandy-skills`, `pnpm exec sandy-skills` or `bunx sandy-skills` (the same for `openspec`).
+The package `@sandyhq/sandy-skills` installs the command `sandy-skills` and brings OpenSpec along; installing OpenSpec next to it pins its version in the lockfile, and sandy-skills then runs that one. Run it through the package manager: `npx sandy-skills`, `pnpm exec sandy-skills` or `bunx sandy-skills`.
+
+`sandy-skills` is the only command you need: every command it does not own goes to OpenSpec unchanged (`sandy-skills list --specs`, `sandy-skills show <id>`, `sandy-skills archive <id>`). `sandy-skills openspec <args>` reaches OpenSpec's own `init`, `update` and `--help`. `openspec` itself still works directly.
 
 To try it without installing, name the package: `npx @sandyhq/sandy-skills init`, `pnpm dlx @sandyhq/sandy-skills init` or `bunx @sandyhq/sandy-skills init`. Installing globally also works (`npm install -g`, `pnpm add -g`, `bun add -g`), but each repo then depends on what each machine has installed.
 
@@ -22,7 +24,7 @@ To try it without installing, name the package: `npx @sandyhq/sandy-skills init`
 npx sandy-skills init --tools pi,claude,codex
 ```
 
-- If the repo has no `openspec/`, init runs `openspec init`. `--tools` goes to it: the agents OpenSpec writes its skills for (`openspec init --help` lists them; `all`, `none`). Without `--tools`, OpenSpec asks.
+- If the repo has no `openspec/`, init runs `openspec init`. `--tools` goes to it: the agents OpenSpec writes its skills for (`sandy-skills openspec init --help` lists them; `all`, `none`). Without `--tools`, OpenSpec asks.
 - It copies the schema to `openspec/schemas/proven/` and sets `schema: proven` in `openspec/config.yaml`, so every new change uses it.
 - It adds `.learn/` to `.gitignore`: each person's learning records and exam results stay on their machine.
 - It installs the skills `spec-first`, `propose-change`, `confirm-part`, `learn-part` and `examine-part` next to OpenSpec's own skills, as links where OpenSpec used links. If OpenSpec wrote none, they go to `.agents/skills/`; `--skills-dir <dir>` chooses.
@@ -41,4 +43,4 @@ To go back: set `schema: spec-driven` again and delete `openspec/schemas/proven/
 
 ## 4. Stay current
 
-Upgrade the package, then run `sandy-skills update` and commit the diff. It replaces the schema and the skills with that version's; edits to your copies are lost, so change the standard upstream instead. `openspec update` refreshes OpenSpec's own skills.
+Upgrade the package, then run `sandy-skills update` and commit the diff. It replaces the schema and the skills with that version's; edits to your copies are lost, so change the standard upstream instead. `sandy-skills openspec update` refreshes OpenSpec's own skills.

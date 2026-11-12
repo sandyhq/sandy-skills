@@ -1,6 +1,6 @@
 // The only I/O against OpenSpec: its own CLI parses the Markdown, so sandy-skills never does, except for the
 // spec's `# ` heading, which OpenSpec's JSON does not carry.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -34,6 +34,14 @@ export function openspecCommand(root) {
 export function runOpenspec(root, args, { inherit = false } = {}) {
   const [cmd, ...pre] = openspecCommand(root);
   return execFileSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8', stdio: inherit ? 'inherit' : ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 });
+}
+
+/** Runs OpenSpec in root with the caller's stdin, stdout and stderr; returns its exit code (1 if a signal ended it). */
+export function passOpenspec(root, args) {
+  const [cmd, ...pre] = openspecCommand(root);
+  const r = spawnSync(cmd, [...pre, ...args], { cwd: root, stdio: 'inherit' });
+  if (r.error) throw new Error(`cannot run OpenSpec (${cmd}): ${r.error.message}`);
+  return r.status ?? 1;
 }
 
 const json = (root, args) => { const out = runOpenspec(root, args); return JSON.parse(out.slice(out.indexOf('{'))); };

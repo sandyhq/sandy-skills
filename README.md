@@ -11,7 +11,7 @@ npm install --save-dev @sandyhq/sandy-skills @fission-ai/openspec   # or: pnpm a
 npx sandy-skills init --tools pi,claude,codex              # or: pnpm exec … / bunx …
 ```
 
-`init` sets up OpenSpec if the repo has none, makes the `proven` schema its default and installs the skills next to OpenSpec's. Then [getting started](docs/getting-started.md) covers switching an existing OpenSpec repo and staying current, and [usage](docs/usage.md) the daily loop, the commands and CI.
+`init` sets up OpenSpec if the repo has none, makes the `proven` schema its default and installs the skills next to OpenSpec's. Every other command goes to OpenSpec unchanged, so `sandy-skills` is the one command to type; `sandy-skills validate` runs OpenSpec's validation and the check together. Then [getting started](docs/getting-started.md) covers switching an existing OpenSpec repo and staying current, and [usage](docs/usage.md) the daily loop, the commands and CI.
 
 ## What is here
 

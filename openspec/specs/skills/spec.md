@@ -16,12 +16,12 @@ Each skill SHALL have a SKILL.md whose name matches its folder and whose descrip
 - **TEST** `test/repo.test.mjs::Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.`
 
 ### Requirement: Seam to cli
-The skills SHALL call only the sandy-skills commands check, hash, confirm and diagram. Read-only.
+The skills SHALL call only the sandy-skills commands check, hash, confirm, diagram and validate. Read-only.
 
 #### Scenario: Seam to cli
 - **WHEN** a skill names a sandy-skills command
-- **THEN** it is check, hash, confirm or diagram
-- **TEST** `test/repo.test.mjs::The skills SHALL call only the sandy-skills commands check, hash, confirm and diagram. Read-only.`
+- **THEN** it is check, hash, confirm, diagram or validate
+- **TEST** `test/repo.test.mjs::The skills SHALL call only the sandy-skills commands check, hash, confirm, diagram and validate. Read-only.`
 
 ### Requirement: Exam line
 The EXAMINED line that examine-part writes SHALL be the line confirm reads.
