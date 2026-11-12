@@ -1,0 +1,41 @@
+// Proves the repository-level parts: sandy-skills, proven-schema and skills (see openspec/specs/).
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+
+const root = new URL('..', import.meta.url).pathname;
+const read = (p) => readFileSync(root + p, 'utf8');
+const skills = readdirSync(root + 'skills', { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
+const [cmd, ...pre] = (process.env.OPENSPEC_BIN || 'openspec').split(/\s+/);
+const openspec = (...args) => spawnSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8' });
+const hasOpenspec = openspec('--version').status === 0;
+
+test("The repository SHALL hold the standards, the proven schema, the specproof checker and the skills, and check each of them in CI.", () => {
+  for (const p of ['standards/README.md', 'standards/sources.md', 'openspec/schemas/proven/schema.yaml', 'tools/specproof/bin/specproof.mjs']) assert.ok(existsSync(root + p), p);
+  assert.deepEqual(skills, ['confirm-part', 'propose-change', 'spec-first']);
+  const ci = read('.github/workflows/ci.yml');
+  for (const step of ['validate --all --strict', '--test-reporter=junit', 'specproof.mjs check']) assert.ok(ci.includes(step), step);
+});
+
+test("The proven schema SHALL pass OpenSpec schema validation and tell agents to write each part with a metadata line, a Contract and TEST lines.", { skip: hasOpenspec ? false : 'openspec not installed' }, () => {
+  const r = openspec('schema', 'validate', 'proven');
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  const schema = read('openspec/schemas/proven/schema.yaml');
+  for (const s of ['Kind: <context|system|container|component|operation>', '### Requirement: Contract', '- **TEST** `<path>::<test name>`']) assert.ok(schema.includes(s), s);
+});
+
+test("Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.", () => {
+  for (const name of skills) {
+    const m = /^---\nname: (.+)\ndescription: (.+)\n---\n/.exec(read(`skills/${name}/SKILL.md`));
+    assert.ok(m, `${name}: frontmatter`);
+    assert.equal(m[1], name);
+    assert.match(m[2], /\bUse (when|for)\b/, `${name}: description says when to use it`);
+  }
+});
+
+test("The skills SHALL call only the specproof commands check, hash and confirm. Read-only.", () => {
+  const used = skills.flatMap((name) => [...read(`skills/${name}/SKILL.md`).matchAll(/`specproof (\w+)/g)].map((m) => m[1]));
+  assert.ok(used.length > 0);
+  assert.deepEqual([...new Set(used)].filter((c) => !['check', 'hash', 'confirm'].includes(c)), []);
+});

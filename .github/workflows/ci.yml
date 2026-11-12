@@ -1,0 +1,35 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      OPENSPEC_BIN: npx --yes @fission-ai/openspec@2.0.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate specs
+        run: $OPENSPEC_BIN validate --all --strict
+      - name: Test
+        run: >-
+          mkdir -p reports &&
+          node --test --test-reporter=spec --test-reporter=junit
+          --test-reporter-destination=stdout --test-reporter-destination=reports/junit.xml
+          tests/*.test.mjs tools/specproof/test/*.test.mjs
+      - name: Prove
+        if: always()
+        run: |
+          node tools/specproof/bin/specproof.mjs check --junit reports/junit.xml --out reports/specproof.md
+          cat reports/specproof.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: releasability-report
+          path: reports/
