@@ -37,6 +37,7 @@ flowchart LR
     subgraph p_cli["cli"]
       p_diagram["diagram"]
       p_init["init"]
+      p_review_2d_time["review-time"]
     end
     p_proven_2d_schema["proven-schema"]
     p_skills["skills"]

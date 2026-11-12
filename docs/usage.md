@@ -33,6 +33,7 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 | `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes, scenarios not shaped GIVEN, WHEN, THEN, TEST, and the releasability report; exit 1 if not releasable |
 | `validate [<openspec validate args>] [--junit FILE\|DIR] [--out FILE] [--strict]` | `openspec validate` with the other arguments, then `check` with `--junit`, `--out` and `--strict` (`--strict` goes to both); prints both, non-zero if either fails |
 | `diagram [<id>] [--write]` | A Mermaid flowchart of every part, or of one part, what is below it and its neighbours; `--write` refreshes every marked block in the repo's Markdown ([diagrams](https://github.com/sandyhq/sandy-skills/blob/main/standards/diagrams.md)) |
+| `review-time --base <ref>` | The estimated review minutes of the diff against the merge base of `<ref>` and HEAD, and each share: change words / 170, code lines / 8 (no tests, Markdown, `openspec/`, lock or generated files), 5 per part, 8 per seam, 2 per claim |
 | `hash <id>` | The contract hash of a part |
 | `confirm <id> <I\|We\|They> <who> [--days N]` | The CONFIRMED line, valid at most 90 days; I needs a passed exam |
 | `openspec <args>` | OpenSpec with exactly these arguments: its own `init`, `update` and `--help`, whose names sandy-skills takes |

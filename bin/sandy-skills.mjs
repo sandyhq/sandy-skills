@@ -10,6 +10,7 @@ import { renderMarkdown } from '../src/report.mjs';
 import { loadSpec, loadSpecs, passOpenspec, readConfig, readOpenChanges, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
 import { readLimits } from '../src/limits.mjs';
 import { readSpecFiles } from '../src/scenarios.mjs';
+import { measureDiff, renderReview } from '../src/review.mjs';
 import { install, PACKAGE } from '../src/install.mjs';
 import { parseExamined, examAllows } from '../src/exam.mjs';
 import { ALL, findBlocks, refreshBlocks, renderDiagram, repoBlocks, markdownFiles } from '../src/diagram.mjs';
@@ -22,6 +23,7 @@ const USAGE = `Usage:
   sandy-skills diagram [<spec-id>] [--write] [--root DIR]
   sandy-skills hash <spec-id> [--root DIR]
   sandy-skills confirm <spec-id> <I|We|They> <who> [--days N] [--today YYYY-MM-DD] [--root DIR]
+  sandy-skills review-time --base <ref> [--root DIR]
   sandy-skills openspec <args>
   sandy-skills --version
 
@@ -37,7 +39,9 @@ with --junit, --out and --strict (--strict goes to both), and exits non-zero whe
 diagram prints a Mermaid flowchart of every part, or of one part, what is below it and its neighbours;
 --write refreshes every <!-- sandy-skills diagram: <id|all> --> block in the repo's Markdown and lists
 the files it changed.
-confirm for the I side needs a passed exam on the current contract in .learn/<who>/exams/<spec-id>.md.`;
+confirm for the I side needs a passed exam on the current contract in .learn/<who>/exams/<spec-id>.md.
+review-time prints the estimated review minutes of the diff against the merge base of --base and HEAD,
+and each share: change words / 170, code lines / 8, 5 per part, 8 per seam, 2 per claim.`;
 
 function args(argv) {
   const opts = { junit: [], 'skills-dir': [], positional: [] };
@@ -101,7 +105,7 @@ async function validate(argv) {
   return validated || checked;
 }
 
-const OWN = new Set(['init', 'update', 'check', 'validate', 'diagram', 'hash', 'confirm']);
+const OWN = new Set(['init', 'update', 'check', 'validate', 'diagram', 'hash', 'confirm', 'review-time']);
 
 async function main(argv) {
   const [first, ...after] = argv;
@@ -124,6 +128,11 @@ async function main(argv) {
     return 0;
   }
   if (command === 'check') return runCheck(root, opts, today);
+  if (command === 'review-time') {
+    if (!opts.base) { console.error('review-time needs --base <ref>'); return 2; }
+    process.stdout.write(renderReview(measureDiff(root, opts.base)));
+    return 0;
+  }
   if (command === 'diagram') {
     const parts = (opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root)).map(parsePart);
     if (!opts.write) { process.stdout.write(renderDiagram(parts, rest[0] ?? ALL)); return 0; }
