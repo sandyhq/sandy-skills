@@ -118,6 +118,13 @@ test('The checker SHALL read openspec/config.yaml with CRLF line endings the sam
   assert.deepEqual(found(result), []);
 });
 
+test('The checker SHALL read thresholds only from the limits key directly under sandy-skills, never from a limits key nested deeper.', () => {
+  const both = 'sandy-skills:\n  reports:\n    limits:\n      total: {warn: 1, error: 2}\n  limits:\n    total: {warn: 600, error: 900}\n';
+  assert.deepEqual(readLimits(both).total, { warn: 600, error: 900 });
+  assert.deepEqual(readLimits('sandy-skills:\n  reports:\n    limits:\n      total: {warn: 1, error: 2}\n'), { ...DEFAULTS, vagueWords: DEFAULT_VAGUE_WORDS });
+  assert.deepEqual(readLimits('sandy-skills:\n    limits:\n        total: {warn: 600, error: 900}\n').total, { warn: 600, error: 900 }, '4-space indent');
+});
+
 test('If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.', () => {
   const flow = readLimits('sandy-skills:\n  limits:\n    proposal: { warn: 100 }\n');
   assert.deepEqual(flow, { ...DEFAULTS, proposal: { warn: 100, error: 225 }, vagueWords: DEFAULT_VAGUE_WORDS });

@@ -57,7 +57,10 @@ export function readLimits(configText) {
   const top = lines.findIndex((l) => /^sandy-skills:\s*(#.*)?$/.test(l));
   if (top < 0) return limits;
   const inner = block(lines, top);
-  const at = inner.findIndex((l) => /^\s+limits:\s*(#.*)?$/.test(l));
+  const first = inner.find((l) => !blank(l));
+  if (!first) return limits;
+  const child = indent(first);
+  const at = inner.findIndex((l) => indent(l) === child && /^\s+limits:\s*(#.*)?$/.test(l));
   if (at < 0) return limits;
   const body = block(inner, at);
   const keyIndent = body.find((l) => !blank(l)) ? indent(body.find((l) => !blank(l))) : 0;
