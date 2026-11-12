@@ -2,7 +2,7 @@
 
 **Status:** Draft. The checker, schema and skills live in this repo and prove this repo's own parts; no other repo uses them yet.
 
-Two ideas, kept without their tools: from **Holons**, every part has a why, a contract and proof from four sides, and the tree shows where the system is not proven; from **scryer**, the spec is the tests: every behaviour is one claim sentence, and the test that proves it carries that sentence as its name. Everything is Markdown in OpenSpec plus the tests in the code. There are no extra source files, and no app or server is needed.
+Two ideas. Every part has a why, a contract and proof from four sides, and the tree shows where the system is not proven. And the spec is the tests: every behaviour is one claim sentence, and the test that proves it carries that sentence as its name. Everything is Markdown in OpenSpec plus the tests in the code. There are no extra source files, and no app or server is needed. Where the ideas come from: [sources](sources.md).
 
 ## A part
 
@@ -36,7 +36,3 @@ specproof check --junit <report> --out reports/specproof.md
 ```
 
 Skills: [spec-first](../skills/spec-first/SKILL.md), [propose-change](../skills/propose-change/SKILL.md), [confirm-part](../skills/confirm-part/SKILL.md).
-
-## Later: the Holons tools
-
-Every field has one place: Purpose and its line give why, kind, partOf, carriedBy, status and code. The Contract and Seam requirements give the contract and seams, the CONFIRMED lines give the confirmations, and the hash is the Holon contract hash, shortened. A converter can be written once those tools are ready; nothing here depends on it.

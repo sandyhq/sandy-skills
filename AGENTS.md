@@ -25,4 +25,5 @@ Run all three before a commit. A test's name is the claim sentence its spec requ
 
 - Follow `standards/repo-structure.md` here too: one fact in one place, one screen per file, no empty scaffolding.
 - New behaviour starts as an OpenSpec change (`openspec/changes/<id>`) with the `proven` schema.
+- Name the projects under "Concepts adopted without their tools" only in `standards/sources.md`; elsewhere describe the idea itself.
 - Keep `specproof` free of dependencies and deterministic: same specs, report and `--today` give the same output.

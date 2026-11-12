@@ -2,7 +2,7 @@
 
 Engineering standards for repos where people and AI agents build together, and the tools that check them: an OpenSpec schema, a checker and agent skills.
 
-The central idea is proof next to intent. Every part of a system states why it exists and what must hold. Every behaviour is one sentence that a named test proves, and CI computes which parts are proven at this commit. Everything is Markdown in [OpenSpec](https://github.com/Fission-AI/OpenSpec) plus the tests in the code. The concepts come from Holons and scryer ([sources](standards/sources.md)), but nothing here needs either tool.
+The central idea is proof next to intent. Every part of a system states why it exists and what must hold. Every behaviour is one sentence that a named test proves, and CI computes which parts are proven at this commit. Everything is Markdown in [OpenSpec](https://github.com/Fission-AI/OpenSpec) plus the tests in the code. No other tool, app or server is needed. Where the ideas come from: [sources](standards/sources.md).
 
 ## What is here
 

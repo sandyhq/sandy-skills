@@ -1,4 +1,4 @@
-// A part is one OpenSpec capability read as a holon: why, metadata, contract, seams, claims, human proofs.
+// A part is one OpenSpec capability read as a part of the system: why, metadata, contract, seams, claims, human proofs.
 import { createHash } from 'node:crypto';
 
 export const KINDS = ['context', 'system', 'container', 'component', 'operation'];

@@ -9,10 +9,15 @@ Where the standards come from. Notes on what each source contributed; read the s
 ## Spec and proof
 
 - [OpenSpec](https://github.com/Fission-AI/OpenSpec): specs and changes as Markdown, custom schemas (`openspec schema fork`), `openspec show --json` which `specproof` reads. Built against 2.0.0.
-- [Holons](https://github.com/nesyeklaf/holons) (repository not public yet) and the essay [Every part is a whole](https://falkeysen.com/writing/every-part-is-a-whole/): why, contract and proof per part; the four sides I, It, We, They; lights; drift kinds; contract hash; 90-day human proofs; more than 7 children as a missing level.
-- [scryer](https://github.com/aklos/scryer): the spec is the tests; each behaviour a claim written as a test before it is built; the plan as the list of todo tests; architecture styles and mutation probes.
 - [EARS](https://alistairmavin.com/ears/) (Mavin et al., "Easy Approach to Requirements Syntax", 2009): the sentence patterns for claims.
 - [JUnit XML](https://github.com/testmoapp/junitxml): the report format every major test runner can write.
+
+## Concepts adopted without their tools
+
+The standards take these ideas over as plain Markdown and tests. Only this file names these projects (checked in CI).
+
+- [Holons](https://github.com/nesyeklaf/holons) (repository not public yet) and the essay [Every part is a whole](https://falkeysen.com/writing/every-part-is-a-whole/): why, contract and proof per part; the four sides I, It, We, They; lights; drift kinds; contract hash; 90-day human proofs; more than 7 children as a missing level. Each Holon field has one place in the [spec format](spec-format.md): Purpose and its line give why, kind, partOf, carriedBy, status and code; the Contract and Seam requirements give the contract and seams; the CONFIRMED lines give the confirmations; the hash is the Holon contract hash, shortened. So a converter can be written once those tools are ready; nothing depends on it.
+- [scryer](https://github.com/aklos/scryer): the spec is the tests; each behaviour a claim written as a test before it is built; the plan as the list of todo tests; architecture styles and mutation probes.
 
 ## Repo structure
 

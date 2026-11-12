@@ -54,7 +54,7 @@ artifacts:
     instruction: |
       Create specification files that define WHAT the system should do.
 
-      Each capability is a part of the system (a holon). Its main spec has this
+      Each capability is a part of the system. Its main spec has this
       shape, checked by `specproof check` in CI:
       - `## Purpose`: first the why (which goal above it serves), then one line
         `Kind: <context|system|container|component|operation> · Part of: <spec id or none> · Carried by: <who> · Status: <proposed|active|retired> · Code: <paths>`.

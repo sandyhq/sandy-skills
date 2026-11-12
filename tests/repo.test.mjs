@@ -2,13 +2,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 
 const root = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(root + p, 'utf8');
 const skills = readdirSync(root + 'skills', { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
 const [cmd, ...pre] = (process.env.OPENSPEC_BIN || 'openspec').split(/\s+/);
 const openspec = (...args) => spawnSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8' });
+const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }).stdout;
 const hasOpenspec = openspec('--version').status === 0;
 
 test("The repository SHALL hold the standards, the proven schema, the specproof checker and the skills, and check each of them in CI.", () => {
@@ -38,4 +39,16 @@ test("The skills SHALL call only the specproof commands check, hash and confirm.
   const used = skills.flatMap((name) => [...read(`skills/${name}/SKILL.md`).matchAll(/`specproof (\w+)/g)].map((m) => m[1]));
   assert.ok(used.length > 0);
   assert.deepEqual([...new Set(used)].filter((c) => !['check', 'hash', 'confirm'].includes(c)), []);
+});
+
+test("Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.", () => {
+  const sources = read('standards/sources.md');
+  const section = /^## Concepts adopted without their tools\n([\s\S]*?)(?=^## )/m.exec(sources);
+  assert.ok(section, 'sources.md has the heading');
+  const names = [...section[1].matchAll(/^- \[([^\]]+)\]/gm)].map((m) => m[1]);
+  assert.ok(names.length > 0, 'the heading lists projects');
+  const files = git('ls-files', '--cached', '--others', '--exclude-standard').split('\n').filter(Boolean)
+    .filter((p) => p !== 'standards/sources.md' && !p.startsWith('openspec/changes/') && existsSync(root + p) && statSync(root + p).isFile());
+  const hits = files.flatMap((p) => names.filter((n) => new RegExp(`\\b${n}`, 'i').test(read(p))).map((n) => `${p}: ${n}`));
+  assert.deepEqual(hits, []);
 });

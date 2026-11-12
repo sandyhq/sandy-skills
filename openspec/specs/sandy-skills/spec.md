@@ -14,3 +14,11 @@ The repository SHALL hold the standards, the proven schema, the specproof checke
 - **WHEN** CI runs on the repository
 - **THEN** the standards, schema, checker and skills are present and checked
 - **TEST** `tests/repo.test.mjs::The repository SHALL hold the standards, the proven schema, the specproof checker and the skills, and check each of them in CI.`
+
+### Requirement: Sources only
+Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.
+
+#### Scenario: Sources only
+- **WHEN** a file other than standards/sources.md names an adopted project
+- **THEN** the repository test fails
+- **TEST** `tests/repo.test.mjs::Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.`
