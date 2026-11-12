@@ -170,12 +170,36 @@ export function countWords(text, { tasks = false } = {}) {
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordRe = (w) => new RegExp(`(?<![\\p{L}\\p{N}_])${w.trim().split(/\s+/).map(escape).join('\\s+')}(?![\\p{L}\\p{N}_])`, 'iu');
 
+/** The text with each code span blanked, line ends kept: n backticks up to the next run of exactly n in the same paragraph. */
+function blankCodeSpans(text) {
+  let out = '';
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] !== '`') { out += text[i++]; continue; }
+    let n = 0;
+    while (text[i + n] === '`') n++;
+    let j = i + n;
+    let close = -1;
+    while (j < text.length && close < 0) {
+      if (text[j] === '\n' && /^\n[ \t]*\n/.test(text.slice(j, j + 200))) break;
+      if (text[j] !== '`') { j++; continue; }
+      let m = 0;
+      while (text[j + m] === '`') m++;
+      if (m === n) close = j; else j += m;
+    }
+    if (close < 0) { out += text.slice(i, i + n); i += n; continue; }
+    out += text.slice(i, close + n).replace(/[^\n]/g, ' ');
+    i = close + n;
+  }
+  return out;
+}
+
 /** Every [line number, word] where a listed word stands outside code, comments, backticks and spec keywords. */
 export function vagueWords(text, words) {
   const res = words.map((w) => [w, wordRe(w)]);
   const hits = [];
-  proseLines(text).forEach((line, i) => {
-    const plain = line.replace(/(`+)[\s\S]*?\1/g, ' ').replace(KEYWORDS, ' ');
+  blankCodeSpans(proseLines(text).join('\n')).split('\n').forEach((line, i) => {
+    const plain = line.replace(KEYWORDS, ' ');
     for (const [w, re] of res) if (re.test(plain)) hits.push([i + 1, w]);
   });
   return hits;

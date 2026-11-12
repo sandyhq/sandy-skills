@@ -310,3 +310,11 @@ The checker SHALL read quoted config values with commas and # as one value, and 
 - **WHEN** vagueWords lists `"maybe, later"` and `"right # away"`, or a list runs over 2 lines
 - **THEN** check reads 2 words, or stops and names the line
 - **TEST** `test/limits.test.mjs::The checker SHALL read quoted config values with commas and # as one value, and stop with a message naming the line for config syntax it does not read.`
+
+### Requirement: Multi-line code spans
+The checker SHALL skip a backtick code span that runs over 2 or more lines of one paragraph when it looks for vague words.
+
+#### Scenario: Multi-line code spans
+- **WHEN** proposal.md says `Run ` and a code span over 2 lines that holds a listed word
+- **THEN** check reports nothing
+- **TEST** `test/limits.test.mjs::The checker SHALL skip a backtick code span that runs over 2 or more lines of one paragraph when it looks for vague words.`

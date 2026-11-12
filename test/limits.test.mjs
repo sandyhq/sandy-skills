@@ -147,6 +147,13 @@ test('The checker SHALL read quoted config values with commas and # as one value
   assert.deepEqual(readLimits('sandy-skills:\n  other: "a \\" b"\n'), { ...DEFAULTS, vagueWords: DEFAULT_VAGUE_WORDS }, 'other keys stay unread');
 });
 
+test('The checker SHALL skip a backtick code span that runs over 2 or more lines of one paragraph when it looks for vague words.', () => {
+  const B = '\x60';
+  assert.deepEqual(found(run([change({ 'proposal.md': 'Run ' + B + 'some\ncommand' + B + ' once.\nRun ' + B + B + 'a ' + B + ' b\nsoon' + B + B + ' too.\n' })])), []);
+  const open = found(run([change({ 'proposal.md': 'Run ' + B + 'some\n\nsoon' + B + ' once.\n' })]));
+  assert.deepEqual(open.map((f) => [f.line, f.word]), [[1, 'some'], [3, 'soon']], 'a blank line ends the paragraph');
+});
+
 test('If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.', () => {
   const flow = readLimits('sandy-skills:\n  limits:\n    proposal: { warn: 100 }\n');
   assert.deepEqual(flow, { ...DEFAULTS, proposal: { warn: 100, error: 225 }, vagueWords: DEFAULT_VAGUE_WORDS });
