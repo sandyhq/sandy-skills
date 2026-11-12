@@ -41,7 +41,9 @@ diagram prints a Mermaid flowchart of every part, or of one part, what is below 
 the files it changed.
 confirm for the I side needs a passed exam on the current contract in .learn/<who>/exams/<spec-id>.md.
 review-time prints the estimated review minutes of the diff against the merge base of --base and HEAD,
-and each share: change words / 170, code lines / 8, 5 per part, 8 per seam, 2 per claim.`;
+and each share: change words / 170, code lines / 8, 5 per part, 8 per seam, 2 per claim. It warns above
+30 minutes or 200 code lines and exits 1 above 60 minutes or 400 code lines, for a code file no part owns,
+for 0 or 2 or more changes, and for code in a part without a delta spec in the change.`;
 
 function args(argv) {
   const opts = { junit: [], 'skills-dir': [], positional: [] };
@@ -130,8 +132,9 @@ async function main(argv) {
   if (command === 'check') return runCheck(root, opts, today);
   if (command === 'review-time') {
     if (!opts.base) { console.error('review-time needs --base <ref>'); return 2; }
-    process.stdout.write(renderReview(measureDiff(root, opts.base)));
-    return 0;
+    const { text, code } = renderReview(measureDiff(root, opts.base));
+    process.stdout.write(text);
+    return code;
   }
   if (command === 'diagram') {
     const parts = (opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root)).map(parsePart);

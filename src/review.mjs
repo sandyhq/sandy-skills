@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { countWords, proseLines } from './limits.mjs';
 
 export const DEFAULT_WEIGHTS = { wordsPerMinute: 170, linesPerMinute: 8, part: 5, seam: 8, claim: 2 };
+/** Owner: target 20 minutes (printed only), warn above 30, fail above 60; code lines warn above 200, fail above 400. */
+export const DEFAULT_REVIEW = { target: 20, minutes: { warn: 30, error: 60 }, lines: { warn: 200, error: 400 }, weights: DEFAULT_WEIGHTS };
 
 /** The shares in minutes and their sum rounded up to whole minutes. */
 export function estimate({ words = 0, lines = 0, parts = 0, seams = 0, claims = 0 }, w = DEFAULT_WEIGHTS) {
@@ -103,13 +105,38 @@ export function measureDiff(root, base) {
   return { base, words, lines: code.reduce((n, f) => n + f.lines, 0), parts: [...touched].sort(), seams, claims: requirements.length - seams, changes: [...changes.keys()].sort(), code, deltas: deltas.map((d) => d.id) };
 }
 
+/**
+ * The gate of one merge request: long-review and many-lines (warning above warn, error above error), unowned-file,
+ * no-change, many-changes and no-delta-spec (errors). Any error makes review-time exit 1.
+ * @param m result of measureDiff
+ * @param minutes the printed, rounded-up minutes
+ */
+export function gate(m, minutes, review = DEFAULT_REVIEW) {
+  const findings = [];
+  const band = (kind, value, { warn, error }, unit) => {
+    if (value > error) findings.push({ kind, severity: 'error', detail: `${value} ${unit}, more than error ${error}; split the change` });
+    else if (value > warn) findings.push({ kind, severity: 'warning', detail: `${value} ${unit}, more than warn ${warn}` });
+  };
+  band('long-review', minutes, review.minutes, 'minutes');
+  band('many-lines', m.lines, review.lines, 'code lines');
+  for (const f of m.code.filter((x) => x.owners.length === 0)) findings.push({ kind: 'unowned-file', severity: 'error', detail: `${f.path} is under the Code paths of no part` });
+  if (m.changes.length >= 2) findings.push({ kind: 'many-changes', severity: 'error', detail: `${m.changes.length} changes in one diff (${m.changes.join(', ')}); one change is one merge request` });
+  if (m.changes.length === 0) findings.push({ kind: 'no-change', severity: 'error', detail: 'the diff holds no change; one merge request is one change' });
+  else for (const id of [...new Set(m.code.flatMap((f) => f.owners))].sort().filter((p) => !m.deltas.includes(p))) {
+    findings.push({ kind: 'no-delta-spec', severity: 'error', detail: `${id} changes code, but no change in the diff has a delta spec for ${id}` });
+  }
+  return findings;
+}
+
 const num = (x) => String(Math.round(x * 10) / 10);
 
-/** The report: total minutes, then one line per share. */
-export function renderReview(m, w = DEFAULT_WEIGHTS) {
+/** The report and the exit code: total minutes, one line per share, the thresholds, then the findings; 1 on any error. */
+export function renderReview(m, review = DEFAULT_REVIEW) {
+  const w = review.weights;
   const { minutes, shares } = estimate({ ...m, parts: m.parts.length }, w);
+  const findings = gate(m, minutes, review);
   const row = (name, calc, value, extra = '') => `  ${name.padEnd(12)} ${calc} = ${num(value)} min${extra}`;
-  return [
+  const text = [
     `review-time: ${minutes} minutes against ${m.base}`,
     row('change words', `${m.words} / ${w.wordsPerMinute}`, shares.words),
     row('code lines', `${m.lines} / ${w.linesPerMinute}`, shares.lines),
@@ -117,5 +144,8 @@ export function renderReview(m, w = DEFAULT_WEIGHTS) {
     row('seams', `${m.seams} × ${w.seam}`, shares.seams),
     row('claims', `${m.claims} × ${w.claim}`, shares.claims),
     `changes: ${m.changes.length ? m.changes.join(', ') : 'none'}`,
+    `target ${review.target} minutes, warn above ${review.minutes.warn}, error above ${review.minutes.error}`,
+    ...findings.map((f) => `${f.severity} ${f.kind}: ${f.detail}`),
   ].join('\n') + '\n';
+  return { text, code: findings.some((f) => f.severity === 'error') ? 1 : 0 };
 }

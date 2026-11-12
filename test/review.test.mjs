@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { countWords } from '../src/limits.mjs';
-import { estimate, owners } from '../src/review.mjs';
+import { estimate, gate, owners } from '../src/review.mjs';
 
 const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
 const git = (root, ...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd: root, encoding: 'utf8' });
@@ -44,14 +44,14 @@ test("review-time SHALL count as code lines the changed lines outside tests, Mar
   const root = repo({ ...part('a', 'src/, gen.js'), '.gitattributes': 'gen.js linguist-generated\n' },
     { 'src/a.mjs': lines(30), 'test/a.test.mjs': lines(50), 'pnpm-lock.yaml': lines(20), 'src/a.spec.js': lines(4), 'gen.js': lines(7), 'docs/a.md': lines(9), 'openspec/config.yaml': lines(3) });
   const r = reviewTime(root);
-  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stderr, '');
   assert.match(r.stdout, /^  code lines +30 \/ 8 = 3\.8 min$/m);
 });
 
 test("review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to requirement and a claim for each other requirement.", () => {
   const root = repo({ ...part('cli', 'src/'), ...part('diagram', 'src/diagram.mjs'), 'src/diagram.mjs': 'a\n' }, { 'src/diagram.mjs': 'b\n' });
   const r = reviewTime(root);
-  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stderr, '');
   assert.match(r.stdout, /^  parts +1 × 5 = 5 min \(diagram\)$/m);
   const parts = [{ id: 'cli', code: ['bin/', 'src/'] }, { id: 'diagram', code: ['src/diagram.mjs', 'bin/'] }];
   assert.deepEqual(owners('bin/x.mjs', parts), ['cli', 'diagram'], 'a tie counts both');
@@ -62,4 +62,57 @@ test("review-time SHALL count a part for each changed file under its Code paths,
   assert.match(s, /^  parts +1 × 5 = 5 min \(review-time\)$/m, 'a delta spec owns code before it is archived');
   assert.match(s, /^  seams +1 × 8 = 8 min$/m);
   assert.match(s, /^  claims +1 × 2 = 2 min$/m);
+});
+
+const errors = (out) => [...out.matchAll(/^error (\S+): (.*)$/mg)].map((m) => [m[1], m[2]]);
+const warnings = (out) => [...out.matchAll(/^warning (\S+): (.*)$/mg)].map((m) => m[1]);
+const measures = (o) => ({ base: 'main', words: 0, lines: 0, parts: ['a'], seams: 0, claims: 0, changes: ['c'], code: [], deltas: ['a'], ...o });
+const kinds = (findings) => findings.map((f) => [f.severity, f.kind]);
+/** One change c with a delta spec for part a holding the given requirements. */
+const seamChange = (n) => ({ 'openspec/changes/c/specs/a/spec.md': delta(...Array.from({ length: n }, (_, i) => `Seam to s${i}`)) });
+
+test("review-time SHALL warn above 30 minutes and exit 1 above 60 minutes.", () => {
+  assert.deepEqual(kinds(gate(measures({}), 61)), [['error', 'long-review']]);
+  assert.deepEqual(kinds(gate(measures({}), 31)), [['warning', 'long-review']]);
+  assert.deepEqual(kinds(gate(measures({}), 30)), []);
+  const long = reviewTime(repo(part('a', 'src/'), seamChange(7)));
+  assert.ok(Number(/^review-time: (\d+) minutes/m.exec(long.stdout)[1]) > 60, long.stdout);
+  assert.equal(long.status, 1);
+  assert.deepEqual(errors(long.stdout).map(([k]) => k), ['long-review']);
+  assert.match(long.stdout, /^target 20 minutes, warn above 30, error above 60$/m);
+  const mid = reviewTime(repo(part('a', 'src/'), seamChange(4)));
+  assert.equal(mid.status, 0, mid.stdout);
+  assert.deepEqual(warnings(mid.stdout), ['long-review']);
+});
+
+test("review-time SHALL warn above 200 code lines and exit 1 above 400 code lines, whatever the minutes.", () => {
+  assert.deepEqual(kinds(gate(measures({ lines: 401 }), 55)), [['warning', 'long-review'], ['error', 'many-lines']]);
+  assert.deepEqual(kinds(gate(measures({ lines: 201 }), 20)), [['warning', 'many-lines']]);
+  assert.deepEqual(kinds(gate(measures({ lines: 200 }), 20)), []);
+  const r = reviewTime(repo(part('a', 'src/'), { ...seamChange(0), 'src/a.mjs': lines(401) }));
+  assert.match(r.stdout, /^review-time: 56 minutes/m, '401 lines / 8 + 5 for 1 part');
+  assert.equal(r.status, 1);
+  assert.deepEqual(errors(r.stdout).map(([k]) => k), ['many-lines']);
+});
+
+test("review-time SHALL exit 1 when a changed code file lies under the Code paths of no part.", () => {
+  const r = reviewTime(repo(part('a', 'src/'), { ...seamChange(0), 'lib/x.mjs': 'a\n', 'src/a.mjs': 'a\n', 'test/x.test.mjs': 'a\n' }));
+  assert.equal(r.status, 1);
+  assert.deepEqual(errors(r.stdout), [['unowned-file', 'lib/x.mjs is under the Code paths of no part']]);
+});
+
+test("review-time SHALL exit 1 when the diff holds 0 changes or 2 or more changes, or changes code in a part without a delta spec in its change.", () => {
+  const parts = { ...part('diagram', 'src/diagram.mjs'), ...part('init', 'src/install.mjs') };
+  const r = reviewTime(repo(parts, { 'openspec/changes/c/specs/diagram/spec.md': delta('X'), 'src/install.mjs': 'a\n', 'src/diagram.mjs': 'a\n' }));
+  assert.equal(r.status, 1);
+  assert.deepEqual(errors(r.stdout), [['no-delta-spec', 'init changes code, but no change in the diff has a delta spec for init']]);
+  const two = reviewTime(repo(parts, { 'openspec/changes/c/specs/diagram/spec.md': delta('X'), 'openspec/changes/archive/2026-01-01-d/specs/diagram/spec.md': delta('Y') }));
+  assert.equal(two.status, 1);
+  assert.deepEqual(errors(two.stdout), [['many-changes', '2 changes in one diff (c, d); one change is one merge request']]);
+  const none = reviewTime(repo(parts, { 'src/install.mjs': 'a\n' }));
+  assert.equal(none.status, 1, none.stdout);
+  assert.deepEqual(errors(none.stdout), [['no-change', 'the diff holds no change; one merge request is one change']]);
+  const archived = reviewTime(repo({ ...parts, 'openspec/changes/c/proposal.md': 'a\n' }, { 'openspec/changes/archive/2026-01-01-c/proposal.md': 'a\n', 'openspec/changes/archive/2026-01-01-c/specs/init/spec.md': delta('X'), 'src/install.mjs': 'a\n' }));
+  assert.equal(archived.status, 0, archived.stdout);
+  assert.match(archived.stdout, /^changes: c$/m, 'an archived change is the same change as the open one');
 });
