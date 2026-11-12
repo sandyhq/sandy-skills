@@ -6,6 +6,7 @@ Engineering standards for repos where people and AI agents build together. Each 
 |---|---|---|
 | [Secure engineering baseline](secure-engineering-baseline.md) | Which checks run where, and what evidence a release carries | Draft, not yet adopted by any repo |
 | [Spec format](spec-format.md) | How intent, proof and decisions are written so a machine can check them | Draft; tooling in this repo, proven on this repo only |
+| [Changes](changes.md) | How a change is shaped, worded and sized so the owner can read it in 3 minutes | Draft; measured by the CLI, used on this repo only |
 | [Diagrams](diagrams.md) | How pictures of parts and seams stay equal to the specs | Draft; generated and checked by the CLI, used on this repo only |
 | [Repo structure](repo-structure.md) | Where each kind of knowledge lives in a repo | Proposal, not yet tried on a project |
 

@@ -7,7 +7,8 @@ import { parsePart } from '../src/parts.mjs';
 import { parseJUnit } from '../src/junit.mjs';
 import { check } from '../src/check.mjs';
 import { renderMarkdown } from '../src/report.mjs';
-import { loadSpec, loadSpecs, passOpenspec, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
+import { loadSpec, loadSpecs, passOpenspec, readConfig, readOpenChanges, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
+import { readLimits } from '../src/limits.mjs';
 import { install, PACKAGE } from '../src/install.mjs';
 import { parseExamined, examAllows } from '../src/exam.mjs';
 import { ALL, findBlocks, refreshBlocks, renderDiagram, repoBlocks, markdownFiles } from '../src/diagram.mjs';
@@ -29,7 +30,8 @@ sandy-skills openspec <args> reaches OpenSpec's own init, update and help (sandy
 init sets up OpenSpec if the repo has none (--tools goes to openspec init), then installs the proven
 schema as default and the skills next to OpenSpec's. update installs them again from this version.
 check exits 1 when the result is not releasable (any error; with --strict also any warning), and reports
-diagram blocks that differ from the specs. validate runs openspec validate with its arguments, then check
+diagram blocks that differ from the specs, and open changes that are long, over the limit or vague
+(sandy-skills.limits in openspec/config.yaml). validate runs openspec validate with its arguments, then check
 with --junit, --out and --strict (--strict goes to both), and exits non-zero when either fails.
 diagram prints a Mermaid flowchart of every part, or of one part, what is below it and its neighbours;
 --write refreshes every <!-- sandy-skills diagram: <id|all> --> block in the repo's Markdown and lists
@@ -66,7 +68,7 @@ const addDays = (d, n) => new Date(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, 
 function runCheck(root, opts, today) {
   const specs = opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root);
   const tests = opts.junit.flatMap(xmlFiles).flatMap((f) => parseJUnit(readFileSync(f, 'utf8')));
-  const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root) });
+  const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root), changes: readOpenChanges(root), limits: readLimits(readConfig(root)) });
   if (opts.strict && result.summary.warnings > 0) result.summary.releasable = false;
   const text = (opts.format ?? 'md') === 'json' ? JSON.stringify(result, null, 2) + '\n' : renderMarkdown(result) + '\n';
   if (opts.out) { mkdirSync(dirname(resolve(opts.out)), { recursive: true }); writeFileSync(opts.out, text); }

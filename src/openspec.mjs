@@ -80,6 +80,25 @@ function specHeading(root, id) {
   return line ? line.replace(/^#\s+/, '').trim() : null;
 }
 
+/** The text of openspec/config.yaml, or '' without one. */
+export function readConfig(root) {
+  const file = join(root, 'openspec', 'config.yaml');
+  return existsSync(file) ? readFileSync(file, 'utf8') : '';
+}
+
+/** Every file of every open change (archive/ left out), sorted: [{id, dir, files: [{path, text}]}]. */
+export function readOpenChanges(root) {
+  const base = join(root, 'openspec', 'changes');
+  if (!existsSync(base)) return [];
+  const walk = (dir, rel) => readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1)).flatMap((d) =>
+    d.isDirectory() ? walk(join(dir, d.name), rel + d.name + '/') : d.isFile() ? [{ path: rel + d.name, text: readFileSync(join(dir, d.name), 'utf8') }] : []);
+  return readdirSync(base, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && d.name !== 'archive')
+    .map((d) => d.name)
+    .sort()
+    .map((id) => ({ id, dir: `openspec/changes/${id}`, files: walk(join(base, id), '') }));
+}
+
 /** The tasks.md text of every open change: a todo test listed there is planned work, not drift. */
 export function readOpenTasks(root) {
   const dir = join(root, 'openspec', 'changes');

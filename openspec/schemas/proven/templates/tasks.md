@@ -1,11 +1,16 @@
-# Tasks
+## 1. Your steps
 
-## 1. <!-- Task Group Name -->
+<!-- Shape, wording rules and limits: https://github.com/sandyhq/sandy-skills/blob/main/standards/changes.md
+     The owner's steps (decide, approve, confirm), or None. -->
+- [ ] 1.1 None
 
-- [ ] 1.1 <!-- Task description -->
-- [ ] 1.2 <!-- Task description -->
+## 2. Proof
 
-## 2. <!-- Task Group Name -->
+<!-- One line per new or changed claim; its test is written first, as a todo test named by the claim sentence. -->
+- [ ] 2.1 Prove `<path>::<claim sentence>`
 
-- [ ] 2.1 <!-- Task description -->
-- [ ] 2.2 <!-- Task description -->
+## 3. Build
+
+<!-- Grouped by what it builds, not by file; each task ends with its check. -->
+- [ ] 3.1 <what>; <its check>
+- [ ] 3.2 Run the tests and `sandy-skills validate --all --strict`

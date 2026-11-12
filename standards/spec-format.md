@@ -26,7 +26,7 @@ Computed by `sandy-skills check` from the specs and the JUnit report of the curr
 
 ## Changes and decisions
 
-Changes use the [proven schema](../openspec/schemas/proven/schema.yaml): the proposal is the why, `tasks.md` lists the claims as todo tests, `design.md` holds the decisions with rejected alternatives and is archived with the change. A decision about one module also sits in its doc comment. Architecture rules (layers, allowed imports) go in `docs/architecture.md`, enforced by the language's import linter; mutation testing on a schedule probes whether the tests really pin the claims.
+Changes use the [proven schema](../openspec/schemas/proven/schema.yaml): the proposal is the why, `tasks.md` lists the claims as todo tests, `design.md` holds the decisions with rejected alternatives and is archived with the change. The shape of each file, the wording rules and the size limits that `sandy-skills check` measures: [changes](changes.md). A decision about one module also sits in its doc comment. Architecture rules (layers, allowed imports) go in `docs/architecture.md`, enforced by the language's import linter; mutation testing on a schedule probes whether the tests really pin the claims.
 
 ## Checks
 

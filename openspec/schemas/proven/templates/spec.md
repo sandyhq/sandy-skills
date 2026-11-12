@@ -1,6 +1,7 @@
 ## Purpose
 
-<!-- New capabilities only. The why: which goal above this part it serves. -->
+<!-- Shape, wording rules and limits: https://github.com/sandyhq/sandy-skills/blob/main/standards/changes.md
+     New capabilities only. The why: which goal above this part it serves. -->
 
 Kind: component · Part of: <!-- parent spec id or none --> · Carried by: <!-- who --> · Status: proposed · Code: <!-- paths -->
 

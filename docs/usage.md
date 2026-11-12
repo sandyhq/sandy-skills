@@ -7,7 +7,7 @@ One command does both: every command that sandy-skills does not own goes to Open
 ## The loop
 
 1. **Find the part.** `sandy-skills list --specs`, then `sandy-skills show <id> --type spec`.
-2. **Propose a change.** `sandy-skills new change <id>` creates `openspec/changes/<id>/` with the proven schema. `sandy-skills status --change <id>` shows which artifact is next and `sandy-skills instructions <artifact> --change <id>` how to write it: the proposal (why), delta specs, `design.md` (decisions), `tasks.md` (the claims as todo tests).
+2. **Propose a change.** `sandy-skills new change <id>` creates `openspec/changes/<id>/` with the proven schema. `sandy-skills status --change <id>` shows which artifact is next and `sandy-skills instructions <artifact> --change <id>` how to write it: the proposal (why), delta specs, `design.md` (decisions), `tasks.md` (the claims as todo tests). Each file has fixed sections with the owner's part first; `check` warns above 500 words per change, blocks above 750 and flags vague words ([changes](https://github.com/sandyhq/sandy-skills/blob/main/standards/changes.md), with the thresholds you can set in `openspec/config.yaml`).
 3. **Write the claims as todo tests.** Each test's name is its claim sentence, word for word. The spec's TEST line names it as `<path>::<test name>`.
 4. **Build** until the tests pass. `sandy-skills openspec validate --all --strict` checks the Markdown alone, and `sandy-skills diagram --write` refreshes the pictures of parts and seams in the docs.
 5. **Prove.** Run the tests with a JUnit reporter, then `sandy-skills validate --all --strict --junit reports/`: OpenSpec's validation, then `check`.
@@ -30,7 +30,7 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 |---|---|
 | `init [--tools LIST] [--skills-dir DIR]` | Sets up OpenSpec if missing, installs the schema as default and the skills |
 | `update [--skills-dir DIR]` | Installs schema and skills again from the installed version |
-| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams and the releasability report; exit 1 if not releasable |
+| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes and the releasability report; exit 1 if not releasable |
 | `validate [<openspec validate args>] [--junit FILE\|DIR] [--out FILE] [--strict]` | `openspec validate` with the other arguments, then `check` with `--junit`, `--out` and `--strict` (`--strict` goes to both); prints both, non-zero if either fails |
 | `diagram [<id>] [--write]` | A Mermaid flowchart of every part, or of one part, what is below it and its neighbours; `--write` refreshes every marked block in the repo's Markdown ([diagrams](https://github.com/sandyhq/sandy-skills/blob/main/standards/diagrams.md)) |
 | `hash <id>` | The contract hash of a part |

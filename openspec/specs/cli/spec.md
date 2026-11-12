@@ -206,3 +206,83 @@ If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHAL
 - **WHEN** only sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs through it
 - **THEN** OpenSpec gets the signal and is gone when sandy-skills exits, and sandy-skills exits as OpenSpec did: with its code when it handled the signal, by the signal when it did not
 - **TEST** `test/cli.test.mjs::If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHALL pass the signal to OpenSpec, wait until OpenSpec ends and exit with its exit code or signal.`
+
+### Requirement: Default thresholds
+If openspec/config.yaml sets no sandy-skills.limits, then the checker SHALL use the default warn and error thresholds.
+
+#### Scenario: Default thresholds
+- **WHEN** openspec/config.yaml has no sandy-skills.limits
+- **THEN** check warns above 500 words per change and blocks above 750
+- **TEST** `test/limits.test.mjs::If openspec/config.yaml sets no sandy-skills.limits, then the checker SHALL use the default warn and error thresholds.`
+
+### Requirement: Warn band
+When a measure of an open change is above its warn threshold and at most its error threshold, the checker SHALL report long-change as a warning.
+
+#### Scenario: Warn band
+- **WHEN** proposal.md of an open change has 151 words
+- **THEN** check reports long-change and stays releasable
+- **TEST** `test/limits.test.mjs::When a measure of an open change is above its warn threshold and at most its error threshold, the checker SHALL report long-change as a warning.`
+
+### Requirement: Error band
+When a measure of an open change is above its error threshold, the checker SHALL report over-limit as an error with the file, the count and the threshold.
+
+#### Scenario: Error band
+- **WHEN** proposal.md of an open change has 226 words
+- **THEN** check reports over-limit with the file, 226 and 225, and is not releasable
+- **TEST** `test/limits.test.mjs::When a measure of an open change is above its error threshold, the checker SHALL report over-limit as an error with the file, the count and the threshold.`
+
+### Requirement: Open changes only
+The checker SHALL apply the thresholds only to open changes, never to archived changes or to openspec/specs.
+
+#### Scenario: Open changes only
+- **WHEN** an archived change and a spec hold 900 words each
+- **THEN** check reports neither
+- **TEST** `test/limits.test.mjs::The checker SHALL apply the thresholds only to open changes, never to archived changes or to openspec/specs.`
+
+### Requirement: Word count
+The checker SHALL count as words only tokens with a letter or digit, outside fenced code, HTML comments, TEST lines and Prove claim texts.
+
+#### Scenario: Word count
+- **WHEN** tasks.md holds a Prove line, a code fence, a comment and a TEST line
+- **THEN** only Prove, the path and the prose words count
+- **TEST** `test/limits.test.mjs::The checker SHALL count as words only tokens with a letter or digit, outside fenced code, HTML comments, TEST lines and Prove claim texts.`
+
+### Requirement: Own thresholds
+Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use those thresholds, and openspec validate SHALL still accept the file.
+
+#### Scenario: Own thresholds
+- **WHEN** openspec/config.yaml sets warn 10 and error 20 for every measure
+- **THEN** check uses 10 and 20, and openspec validate passes
+- **TEST** `test/limits.test.mjs::Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use those thresholds, and openspec validate SHALL still accept the file.`
+
+### Requirement: Partial override
+If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.
+
+#### Scenario: Partial override
+- **WHEN** openspec/config.yaml sets proposal warn 100 only
+- **THEN** proposal blocks above 225 and every other measure keeps its default
+- **TEST** `test/limits.test.mjs::If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.`
+
+### Requirement: Vague words
+When a file of an open change uses a word of the default vague-word list, the checker SHALL report vague-word as an error with the file, line and word.
+
+#### Scenario: Vague words
+- **WHEN** proposal.md says `We should ship it soon, etc.`
+- **THEN** check reports `should`, `etc` and `soon` with their line
+- **TEST** `test/limits.test.mjs::When a file of an open change uses a word of the default vague-word list, the checker SHALL report vague-word as an error with the file, line and word.`
+
+### Requirement: Own vague words
+Where openspec/config.yaml sets sandy-skills.limits.vagueWords, the checker SHALL use that list instead of the default list.
+
+#### Scenario: Own vague words
+- **WHEN** vagueWords lists hurry and right away
+- **THEN** check reports those two and no default word
+- **TEST** `test/limits.test.mjs::Where openspec/config.yaml sets sandy-skills.limits.vagueWords, the checker SHALL use that list instead of the default list.`
+
+### Requirement: Code is no prose
+The checker SHALL skip fenced code, HTML comments, backticks and the keywords SHALL, WHEN, THEN, AND and GIVEN when it looks for vague words.
+
+#### Scenario: Code is no prose
+- **WHEN** a listed word stands in code, a comment, backticks or a keyword
+- **THEN** check reports nothing
+- **TEST** `test/limits.test.mjs::The checker SHALL skip fenced code, HTML comments, backticks and the keywords SHALL, WHEN, THEN, AND and GIVEN when it looks for vague words.`

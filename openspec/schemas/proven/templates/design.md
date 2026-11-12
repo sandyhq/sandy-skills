@@ -1,21 +1,15 @@
-# Design
+## Owner decisions
 
-## Context
+<!-- Shape, wording rules and limits: https://github.com/sandyhq/sandy-skills/blob/main/standards/changes.md
+     One line each: what the owner chose and why, in his words. Never invent a reason for him. -->
+- <chosen>: <why, in the owner's words>
 
-<!-- Current state and constraints that shape the approach. See proposal.md for motivation - don't restate it -->
+## Agent decisions
 
-## Goals / Non-Goals
+<!-- One line each: what you chose, and the rejected option in one clause. -->
+- <chosen>; rejected: <option>, <why not>
 
-**Goals:**
-<!-- What this design aims to achieve -->
+## Risks
 
-**Non-Goals:**
-<!-- What is explicitly out of scope -->
-
-## Decisions
-
-<!-- Key design decisions with rationale and alternatives considered -->
-
-## Risks / Trade-offs
-
-<!-- Known risks and trade-offs -->
+<!-- One line each. -->
+- <risk> → <answer>

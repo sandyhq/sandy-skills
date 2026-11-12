@@ -28,6 +28,22 @@ test("The proven schema SHALL pass OpenSpec schema validation and tell agents to
   for (const s of ['Kind: <context|system|container|component|operation>', '### Requirement: Contract', '- **TEST** `<path>::<test name>`']) assert.ok(schema.includes(s), s);
 });
 
+test("The proven schema SHALL give proposal, design and tasks fixed sections with the owner's part first, and link each artifact to standards/changes.md.", () => {
+  const headings = (file) => read(`openspec/schemas/proven/templates/${file}`).split('\n').filter((l) => l.startsWith('## '));
+  assert.deepEqual(headings('proposal.md'), ['## Why', '## Your decisions', '## What Changes', '## Not in this change']);
+  assert.deepEqual(headings('design.md'), ['## Owner decisions', '## Agent decisions', '## Risks']);
+  assert.deepEqual(headings('tasks.md'), ['## 1. Your steps', '## 2. Proof', '## 3. Build']);
+  const url = 'https://github.com/sandyhq/sandy-skills/blob/main/standards/changes.md';
+  const schema = read('openspec/schemas/proven/schema.yaml');
+  const instructions = schema.split(/\n  - id: /).slice(1);
+  assert.deepEqual(instructions.map((a) => a.split('\n')[0]), ['proposal', 'specs', 'design', 'tasks']);
+  for (const a of instructions) assert.ok(a.includes(url), `${a.split('\n')[0]} instruction links the standard`);
+  for (const f of ['proposal.md', 'design.md', 'tasks.md', 'spec.md']) assert.ok(read(`openspec/schemas/proven/templates/${f}`).includes(url), f);
+  assert.ok(read('skills/propose-change/SKILL.md').includes(url), 'propose-change links the standard');
+  assert.match(read('standards/spec-format.md'), /\]\(changes\.md\)/);
+  for (const h of ['## Files', '## Wording', '## Limits']) assert.ok(read('standards/changes.md').includes(h), h);
+});
+
 test("Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.", () => {
   for (const name of skills) {
     const m = /^---\nname: (.+)\ndescription: (.+)\n---\n/.exec(read(`skills/${name}/SKILL.md`));
