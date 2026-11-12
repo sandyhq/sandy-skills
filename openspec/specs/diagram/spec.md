@@ -11,7 +11,8 @@ Kind: component · Part of: cli · Carried by: nesyeklaf · Status: active · Co
 The diagram command SHALL generate a Mermaid flowchart of the parts and their seams from the specs, and check SHALL report every marked diagram block that differs from it.
 
 #### Scenario: Contract
-- **WHEN** diagram runs and a marked block holds an older diagram
+- **GIVEN** a marked block holds an older diagram
+- **WHEN** diagram runs
 - **THEN** diagram prints the flowchart and check fails on the block
 - **TEST** `test/diagram.test.mjs::The diagram command SHALL generate a Mermaid flowchart of the parts and their seams from the specs, and check SHALL report every marked diagram block that differs from it.`
 
@@ -19,7 +20,8 @@ The diagram command SHALL generate a Mermaid flowchart of the parts and their se
 The diagram SHALL draw a part that has parts below it as a subgraph nested by Part of, and every other part as a node labelled with its spec title.
 
 #### Scenario: Nesting
-- **WHEN** a system has containers and a container has components
+- **GIVEN** a system has containers and a container has components
+- **WHEN** diagram runs
 - **THEN** system and container are nested subgraphs, the components are nodes
 - **TEST** `test/diagram.test.mjs::The diagram SHALL draw a part that has parts below it as a subgraph nested by Part of, and every other part as a node labelled with its spec title.`
 
@@ -27,7 +29,8 @@ The diagram SHALL draw a part that has parts below it as a subgraph nested by Pa
 The diagram SHALL draw each seam as an edge to its target: solid and labelled exclusive for an exclusive seam, dotted and labelled read-only for a read-only seam, plain otherwise.
 
 #### Scenario: Seam edges
-- **WHEN** parts have exclusive, read-only and plain seams
+- **GIVEN** parts have exclusive, read-only and plain seams
+- **WHEN** diagram runs
 - **THEN** each seam is an edge of its kind
 - **TEST** `test/diagram.test.mjs::The diagram SHALL draw each seam as an edge to its target: solid and labelled exclusive for an exclusive seam, dotted and labelled read-only for a read-only seam, plain otherwise.`
 
@@ -35,7 +38,8 @@ The diagram SHALL draw each seam as an edge to its target: solid and labelled ex
 The diagram SHALL draw proposed parts with a dashed stroke and retired parts in grey.
 
 #### Scenario: Status
-- **WHEN** a part is proposed and another retired
+- **GIVEN** a part is proposed and another retired
+- **WHEN** diagram runs
 - **THEN** each gets its class
 - **TEST** `test/diagram.test.mjs::The diagram SHALL draw proposed parts with a dashed stroke and retired parts in grey.`
 
@@ -43,7 +47,8 @@ The diagram SHALL draw proposed parts with a dashed stroke and retired parts in 
 When given a part id, diagram SHALL show that part, every part below it and every neighbour their seams touch, the neighbours as plain nodes.
 
 #### Scenario: One part
-- **WHEN** diagram runs with the id of a container
+- **GIVEN** a container
+- **WHEN** diagram runs with the id of the container
 - **THEN** it shows the container, its components and their neighbours, and no other part
 - **TEST** `test/diagram.test.mjs::When given a part id, diagram SHALL show that part, every part below it and every neighbour their seams touch, the neighbours as plain nodes.`
 
@@ -51,7 +56,8 @@ When given a part id, diagram SHALL show that part, every part below it and ever
 When run on the same specs, diagram SHALL print the same diagram.
 
 #### Scenario: Same specs, same diagram
-- **WHEN** diagram runs twice, on specs listed in different orders
+- **GIVEN** specs listed in different orders
+- **WHEN** diagram runs twice, once per order
 - **THEN** both outputs are identical
 - **TEST** `test/diagram.test.mjs::When run on the same specs, diagram SHALL print the same diagram.`
 
@@ -59,7 +65,8 @@ When run on the same specs, diagram SHALL print the same diagram.
 diagram --write SHALL rewrite every marked block to what diagram generates, leave the rest of each file byte-identical and list the files it changed.
 
 #### Scenario: Write
-- **WHEN** diagram --write runs on a repo with a stale block
+- **GIVEN** a repo with a stale block
+- **WHEN** diagram --write runs
 - **THEN** the block holds the generated diagram, the rest of the file is unchanged, the file is listed, and check passes
 - **TEST** `test/diagram.test.mjs::diagram --write SHALL rewrite every marked block to what diagram generates, leave the rest of each file byte-identical and list the files it changed.`
 
@@ -67,7 +74,8 @@ diagram --write SHALL rewrite every marked block to what diagram generates, leav
 When a marked diagram block differs from what diagram generates, check SHALL report stale-diagram as an error with the file and line of the block.
 
 #### Scenario: Stale diagram
-- **WHEN** a block holds an older diagram
+- **GIVEN** a block holds an older diagram
+- **WHEN** check runs
 - **THEN** check reports stale-diagram with file and line and exits non-zero
 - **TEST** `test/diagram.test.mjs::When a marked diagram block differs from what diagram generates, check SHALL report stale-diagram as an error with the file and line of the block.`
 
@@ -75,7 +83,8 @@ When a marked diagram block differs from what diagram generates, check SHALL rep
 If a marked diagram block names an id that has no spec, then check SHALL report unknown-part as an error.
 
 #### Scenario: Unknown part
-- **WHEN** a block names an id with no spec
+- **GIVEN** a block names an id with no spec
+- **WHEN** check runs
 - **THEN** check reports unknown-part
 - **TEST** `test/diagram.test.mjs::If a marked diagram block names an id that has no spec, then check SHALL report unknown-part as an error.`
 
@@ -83,7 +92,8 @@ If a marked diagram block names an id that has no spec, then check SHALL report 
 The checker SHALL read diagram blocks only from marker lines outside code fences in Markdown files outside .git, node_modules and openspec/changes/archive.
 
 #### Scenario: Only marked blocks
-- **WHEN** markers sit in a code fence, under node_modules or in an archived change, and a repo has no other block
+- **GIVEN** markers sit in a code fence, under node_modules or in an archived change, and a repo has no other block
+- **WHEN** check runs
 - **THEN** check reports no diagram finding
 - **TEST** `test/diagram.test.mjs::The checker SHALL read diagram blocks only from marker lines outside code fences in Markdown files outside .git, node_modules and openspec/changes/archive.`
 
@@ -91,7 +101,8 @@ The checker SHALL read diagram blocks only from marker lines outside code fences
 The diagram SHALL give parts with different ids different Mermaid ids.
 
 #### Scenario: Distinct ids
-- **WHEN** parts whose ids differ only in characters outside a-z and 0-9, such as a.1 and a-46-1
+- **GIVEN** parts whose ids differ only in characters outside a-z and 0-9, such as a.1 and a-46-1
+- **WHEN** diagram runs
 - **THEN** each gets its own node
 - **TEST** `test/diagram.test.mjs::The diagram SHALL give parts with different ids different Mermaid ids.`
 
@@ -99,7 +110,8 @@ The diagram SHALL give parts with different ids different Mermaid ids.
 The checker SHALL treat a line indented by up to three spaces as a code fence when CommonMark does, both to open and to close it.
 
 #### Scenario: Indented fences
-- **WHEN** a marked block sits inside a fence opened by an indented line, or follows a fence closed by an indented line
+- **GIVEN** a marked block sits inside a fence opened by an indented line, or follows a fence closed by an indented line
+- **WHEN** check or diagram --write runs
 - **THEN** the first is neither checked nor written, the second is
 - **TEST** `test/diagram.test.mjs::The checker SHALL treat a line indented by up to three spaces as a code fence when CommonMark does, both to open and to close it.`
 
@@ -107,6 +119,7 @@ The checker SHALL treat a line indented by up to three spaces as a code fence wh
 The diagram SHALL write each title so that Mermaid shows it exactly as the spec writes it.
 
 #### Scenario: Titles as written
-- **WHEN** a title contains #35;, #quot;, a quote or a tag
+- **GIVEN** a title contains #35;, #quot;, a quote or a tag
+- **WHEN** diagram runs
 - **THEN** the label holds them as Mermaid entities that show the title unchanged
 - **TEST** `test/diagram.test.mjs::The diagram SHALL write each title so that Mermaid shows it exactly as the spec writes it.`

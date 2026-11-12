@@ -11,6 +11,7 @@ Kind: component · Part of: sandy-skills · Carried by: nesyeklaf · Status: act
 The proven schema SHALL pass OpenSpec schema validation and tell agents to write each part with a metadata line, a Contract and TEST lines.
 
 #### Scenario: Contract
+- **GIVEN** the proven schema
 - **WHEN** OpenSpec validates the schema
 - **THEN** it is valid and states the part format
 - **TEST** `test/repo.test.mjs::The proven schema SHALL pass OpenSpec schema validation and tell agents to write each part with a metadata line, a Contract and TEST lines.`
@@ -19,6 +20,7 @@ The proven schema SHALL pass OpenSpec schema validation and tell agents to write
 The proven schema SHALL give proposal, design and tasks fixed sections with the owner's part first, and link each artifact to standards/changes.md.
 
 #### Scenario: File shapes
+- **GIVEN** the proven schema
 - **WHEN** an agent reads the templates and the instructions
 - **THEN** the headings come in the fixed order and each artifact links the standard
 - **TEST** `test/repo.test.mjs::The proven schema SHALL give proposal, design and tasks fixed sections with the owner's part first, and link each artifact to standards/changes.md.`

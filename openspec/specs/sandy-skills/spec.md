@@ -11,6 +11,7 @@ Kind: system · Part of: none · Carried by: nesyeklaf · Status: active · Code
 The repository SHALL hold the standards, the proven schema, the sandy-skills CLI and the skills, and check each of them in CI.
 
 #### Scenario: Contract
+- **GIVEN** the repository
 - **WHEN** CI runs on the repository
 - **THEN** the standards, schema, checker and skills are present and checked
 - **TEST** `test/repo.test.mjs::The repository SHALL hold the standards, the proven schema, the sandy-skills CLI and the skills, and check each of them in CI.`
@@ -19,7 +20,8 @@ The repository SHALL hold the standards, the proven schema, the sandy-skills CLI
 Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.
 
 #### Scenario: Sources only
-- **WHEN** a file other than standards/sources.md names an adopted project
+- **GIVEN** a file other than standards/sources.md names an adopted project
+- **WHEN** the repository test runs
 - **THEN** the repository test fails
 - **TEST** `test/repo.test.mjs::Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.`
 
@@ -27,6 +29,7 @@ Only standards/sources.md SHALL name the projects listed under its heading Conce
 The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.
 
 #### Scenario: Package
+- **GIVEN** the repository
 - **WHEN** the package is packed
 - **THEN** it holds bin/, src/, skills/, the schema and standards/, and no test files
 - **TEST** `test/repo.test.mjs::The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.`

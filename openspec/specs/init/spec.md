@@ -11,7 +11,8 @@ Kind: component · Part of: cli · Carried by: nesyeklaf · Status: active · Co
 init SHALL set up OpenSpec when the repo has none, make proven its default schema and install the skills where OpenSpec installed its own.
 
 #### Scenario: Contract
-- **WHEN** init runs in a repo without OpenSpec
+- **GIVEN** a repo without OpenSpec
+- **WHEN** init runs
 - **THEN** OpenSpec is set up, proven is the default schema and the skills sit next to OpenSpec's
 - **TEST** `test/init.test.mjs::init SHALL set up OpenSpec when the repo has none, make proven its default schema and install the skills where OpenSpec installed its own.`
 
@@ -19,7 +20,8 @@ init SHALL set up OpenSpec when the repo has none, make proven its default schem
 When OpenSpec linked an agent's skills to another directory, init SHALL link the skills the same way.
 
 #### Scenario: Links like OpenSpec
-- **WHEN** OpenSpec's skills in an agent directory are links
+- **GIVEN** OpenSpec's skills in an agent directory are links
+- **WHEN** init runs
 - **THEN** the skills there are links to the same directory
 - **TEST** `test/init.test.mjs::When OpenSpec linked an agent's skills to another directory, init SHALL link the skills the same way.`
 
@@ -27,7 +29,8 @@ When OpenSpec linked an agent's skills to another directory, init SHALL link the
 update SHALL replace the schema and the skills with this version's and keep the rest of openspec/config.yaml.
 
 #### Scenario: Update
-- **WHEN** the schema or a skill was changed locally and update runs
+- **GIVEN** the schema or a skill was changed locally
+- **WHEN** update runs
 - **THEN** both are this version's again and config.yaml keeps its other lines
 - **TEST** `test/init.test.mjs::update SHALL replace the schema and the skills with this version's and keep the rest of openspec/config.yaml.`
 
@@ -35,7 +38,8 @@ update SHALL replace the schema and the skills with this version's and keep the 
 If the repo has no openspec directory, then update SHALL fail and change nothing.
 
 #### Scenario: Update needs OpenSpec
-- **WHEN** update runs in a repo without openspec/
+- **GIVEN** a repo without openspec/
+- **WHEN** update runs
 - **THEN** it exits non-zero and writes nothing
 - **TEST** `test/init.test.mjs::If the repo has no openspec directory, then update SHALL fail and change nothing.`
 
@@ -43,6 +47,7 @@ If the repo has no openspec directory, then update SHALL fail and change nothing
 When init or update runs, it SHALL add .learn/ to the repo's .gitignore once and keep the file's other lines.
 
 #### Scenario: Learning records stay local
-- **WHEN** init or update runs, with or without a .gitignore
+- **GIVEN** a repo with or without a .gitignore
+- **WHEN** init or update runs
 - **THEN** it lists .learn/ exactly once and keeps its other lines
 - **TEST** `test/init.test.mjs::When init or update runs, it SHALL add .learn/ to the repo's .gitignore once and keep the file's other lines.`

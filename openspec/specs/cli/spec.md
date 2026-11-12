@@ -11,7 +11,8 @@ Kind: container · Part of: sandy-skills · Carried by: nesyeklaf · Status: act
 The checker SHALL compute lights, drift and a releasability report from OpenSpec specs and JUnit reports, and exit non-zero when the result is not releasable.
 
 #### Scenario: Contract
-- **WHEN** the checker runs on specs and JUnit reports
+- **GIVEN** OpenSpec specs and JUnit reports
+- **WHEN** the checker runs on those specs and reports
 - **THEN** it prints the report and exits 0 only when releasable
 - **TEST** `test/cli.test.mjs::The checker SHALL compute lights, drift and a releasability report from OpenSpec specs and JUnit reports, and exit non-zero when the result is not releasable.`
 
@@ -19,7 +20,8 @@ The checker SHALL compute lights, drift and a releasability report from OpenSpec
 When run on the same specs, report and date, the checker SHALL print the same report.
 
 #### Scenario: Same input, same report
-- **WHEN** it runs twice on the same specs, report and date
+- **GIVEN** the same specs, report and date
+- **WHEN** the checker runs twice
 - **THEN** both reports are identical
 - **TEST** `test/cli.test.mjs::When run on the same specs, report and date, the checker SHALL print the same report.`
 
@@ -27,7 +29,8 @@ When run on the same specs, report and date, the checker SHALL print the same re
 The checker SHALL read test results from JUnit XML, including attribute values that contain angle brackets.
 
 #### Scenario: JUnit parsing
-- **WHEN** a report has failed, todo and skipped tests and escaped attributes
+- **GIVEN** a report with failed, todo and skipped tests and escaped attributes
+- **WHEN** the checker reads the report
 - **THEN** each test gets its status and its message
 - **TEST** `test/parse.test.mjs::The checker SHALL read test results from JUnit XML, including attribute values that contain angle brackets.`
 
@@ -35,7 +38,8 @@ The checker SHALL read test results from JUnit XML, including attribute values t
 The contract hash SHALL ignore whitespace in the contract sentence.
 
 #### Scenario: Hash ignores whitespace
-- **WHEN** a contract sentence is rewrapped
+- **GIVEN** a contract sentence
+- **WHEN** the sentence is rewrapped
 - **THEN** its hash stays the same
 - **TEST** `test/parse.test.mjs::The contract hash SHALL ignore whitespace in the contract sentence.`
 
@@ -43,7 +47,8 @@ The contract hash SHALL ignore whitespace in the contract sentence.
 If a TEST, CONFIRMED or metadata line is malformed, then the checker SHALL report it as an error.
 
 #### Scenario: Malformed lines
-- **WHEN** a TEST, CONFIRMED or metadata line has the wrong shape
+- **GIVEN** a TEST, CONFIRMED or metadata line with the wrong shape
+- **WHEN** the checker runs
 - **THEN** the checker reports an error
 - **TEST** `test/parse.test.mjs::If a TEST, CONFIRMED or metadata line is malformed, then the checker SHALL report it as an error.`
 
@@ -51,7 +56,8 @@ If a TEST, CONFIRMED or metadata line is malformed, then the checker SHALL repor
 When a referenced test passed, the checker SHALL light the requirement hard.
 
 #### Scenario: Passing test
-- **WHEN** the referenced test passed
+- **GIVEN** the referenced test passed
+- **WHEN** the checker runs
 - **THEN** the requirement is hard
 - **TEST** `test/check.test.mjs::When a referenced test passed, the checker SHALL light the requirement hard.`
 
@@ -59,7 +65,8 @@ When a referenced test passed, the checker SHALL light the requirement hard.
 When a referenced test failed, the checker SHALL report a break and light the requirement refuted.
 
 #### Scenario: Failing test
-- **WHEN** the referenced test failed
+- **GIVEN** the referenced test failed
+- **WHEN** the checker runs
 - **THEN** the checker reports a break
 - **TEST** `test/check.test.mjs::When a referenced test failed, the checker SHALL report a break and light the requirement refuted.`
 
@@ -67,7 +74,8 @@ When a referenced test failed, the checker SHALL report a break and light the re
 If a TEST line names a test that the report does not contain, then the checker SHALL report missing-test as an error.
 
 #### Scenario: Missing test
-- **WHEN** a TEST line names a test the report lacks
+- **GIVEN** a TEST line that names a test the report lacks
+- **WHEN** the checker runs
 - **THEN** the checker reports missing-test
 - **TEST** `test/check.test.mjs::If a TEST line names a test that the report does not contain, then the checker SHALL report missing-test as an error.`
 
@@ -75,7 +83,8 @@ If a TEST line names a test that the report does not contain, then the checker S
 When a test name is a sentence that differs from its requirement, the checker SHALL report claim-mismatch.
 
 #### Scenario: Claim mismatch
-- **WHEN** a test's sentence differs from its requirement
+- **GIVEN** a test's sentence that differs from its requirement
+- **WHEN** the checker runs
 - **THEN** the checker reports claim-mismatch
 - **TEST** `test/check.test.mjs::When a test name is a sentence that differs from its requirement, the checker SHALL report claim-mismatch.`
 
@@ -83,7 +92,8 @@ When a test name is a sentence that differs from its requirement, the checker SH
 When a todo test is listed in no open change, the checker SHALL report todo-outside-change as a warning.
 
 #### Scenario: Todo outside a change
-- **WHEN** a todo test is in no open change
+- **GIVEN** a todo test in no open change
+- **WHEN** the checker runs
 - **THEN** the checker warns todo-outside-change
 - **TEST** `test/check.test.mjs::When a todo test is listed in no open change, the checker SHALL report todo-outside-change as a warning.`
 
@@ -91,7 +101,8 @@ When a todo test is listed in no open change, the checker SHALL report todo-outs
 When a person who does not carry the part confirms its current contract, the checker SHALL light that side soft.
 
 #### Scenario: Soft confirmation
-- **WHEN** a non-carrier confirms the current contract
+- **GIVEN** a current contract
+- **WHEN** a non-carrier confirms the contract
 - **THEN** that side is soft
 - **TEST** `test/check.test.mjs::When a person who does not carry the part confirms its current contract, the checker SHALL light that side soft.`
 
@@ -99,6 +110,7 @@ When a person who does not carry the part confirms its current contract, the che
 When the part's carrier confirms its own contract, the checker SHALL light that side claimed.
 
 #### Scenario: Claimed confirmation
+- **GIVEN** any part
 - **WHEN** the carrier confirms
 - **THEN** that side is claimed
 - **TEST** `test/check.test.mjs::When the part's carrier confirms its own contract, the checker SHALL light that side claimed.`
@@ -107,7 +119,8 @@ When the part's carrier confirms its own contract, the checker SHALL light that 
 If the contract changes after a confirmation, then the checker SHALL light that side expired.
 
 #### Scenario: Changed contract
-- **WHEN** the contract changes after a confirmation
+- **GIVEN** a confirmation
+- **WHEN** the contract changes after the confirmation
 - **THEN** that side is expired
 - **TEST** `test/check.test.mjs::If the contract changes after a confirmation, then the checker SHALL light that side expired.`
 
@@ -115,7 +128,8 @@ If the contract changes after a confirmation, then the checker SHALL light that 
 If a confirmation is valid for more than 90 days, then the checker SHALL report confirmation-too-long.
 
 #### Scenario: Confirmation too long
-- **WHEN** a confirmation runs over 90 days
+- **GIVEN** a confirmation over 90 days
+- **WHEN** the checker runs
 - **THEN** the checker reports confirmation-too-long
 - **TEST** `test/check.test.mjs::If a confirmation is valid for more than 90 days, then the checker SHALL report confirmation-too-long.`
 
@@ -123,7 +137,8 @@ If a confirmation is valid for more than 90 days, then the checker SHALL report 
 The checker SHALL light a part as its weakest side, and drift when the part has a finding of its own.
 
 #### Scenario: Weakest side
-- **WHEN** a part has sides of different lights
+- **GIVEN** a part with sides of different lights
+- **WHEN** the checker runs
 - **THEN** the part shows the weakest, or drift
 - **TEST** `test/check.test.mjs::The checker SHALL light a part as its weakest side, and drift when the part has a finding of its own.`
 
@@ -131,7 +146,8 @@ The checker SHALL light a part as its weakest side, and drift when the part has 
 If Part of names no spec or leads back to the part, then the checker SHALL report unknown-parent or cycle.
 
 #### Scenario: Unknown parent or cycle
-- **WHEN** Part of is unknown or circular
+- **GIVEN** a Part of that is unknown or circular
+- **WHEN** the checker runs
 - **THEN** the checker reports unknown-parent or cycle
 - **TEST** `test/check.test.mjs::If Part of names no spec or leads back to the part, then the checker SHALL report unknown-parent or cycle.`
 
@@ -139,7 +155,8 @@ If Part of names no spec or leads back to the part, then the checker SHALL repor
 When a part has an exclusive seam to a target that a part outside it writes to, the checker SHALL report a contradiction.
 
 #### Scenario: Contradiction
-- **WHEN** an exclusive seam's target has another writer outside
+- **GIVEN** an exclusive seam whose target has another writer outside
+- **WHEN** the checker runs
 - **THEN** the checker reports a contradiction
 - **TEST** `test/check.test.mjs::When a part has an exclusive seam to a target that a part outside it writes to, the checker SHALL report a contradiction.`
 
@@ -147,7 +164,8 @@ When a part has an exclusive seam to a target that a part outside it writes to, 
 When a part has more than 7 children, the checker SHALL warn that a level may be missing.
 
 #### Scenario: Too many children
-- **WHEN** a part has more than 7 children
+- **GIVEN** a part with more than 7 children
+- **WHEN** the checker runs
 - **THEN** the checker warns
 - **TEST** `test/check.test.mjs::When a part has more than 7 children, the checker SHALL warn that a level may be missing.`
 
@@ -155,7 +173,8 @@ When a part has more than 7 children, the checker SHALL warn that a level may be
 When a spec has no metadata line, Contract, seam, TEST or CONFIRMED line, the checker SHALL report it as not-adopted with a warning instead of errors.
 
 #### Scenario: Not adopted
-- **WHEN** a spec has none of the format's lines
+- **GIVEN** a spec with none of the format's lines
+- **WHEN** the checker runs
 - **THEN** the checker warns not-adopted and reports no error for it
 - **TEST** `test/check.test.mjs::When a spec has no metadata line, Contract, seam, TEST or CONFIRMED line, the checker SHALL report it as not-adopted with a warning instead of errors.`
 
@@ -163,6 +182,7 @@ When a spec has no metadata line, Contract, seam, TEST or CONFIRMED line, the ch
 confirm SHALL print an I confirmation only when the person passed the exam on the part's current contract within the last 90 days.
 
 #### Scenario: Exam before I
+- **GIVEN** any part
 - **WHEN** confirm is asked for the I side
 - **THEN** it prints the line only with a passed, current exam on the current contract, and otherwise exits non-zero and says why
 - **TEST** `test/cli.test.mjs::confirm SHALL print an I confirmation only when the person passed the exam on the part's current contract within the last 90 days.`
@@ -171,7 +191,8 @@ confirm SHALL print an I confirmation only when the person passed the exam on th
 Every command that sandy-skills does not own SHALL run the OpenSpec CLI with the same arguments, input and output, and exit with its exit code.
 
 #### Scenario: Passthrough
-- **WHEN** sandy-skills runs a command it does not own, with input on stdin
+- **GIVEN** input on stdin
+- **WHEN** sandy-skills runs a command it does not own
 - **THEN** OpenSpec gets the same arguments and input, its output reaches the caller, and sandy-skills exits with OpenSpec's exit code
 - **TEST** `test/cli.test.mjs::Every command that sandy-skills does not own SHALL run the OpenSpec CLI with the same arguments, input and output, and exit with its exit code.`
 
@@ -179,6 +200,7 @@ Every command that sandy-skills does not own SHALL run the OpenSpec CLI with the
 sandy-skills openspec SHALL pass the rest of its arguments to the OpenSpec CLI, so that OpenSpec's own init, update and help stay reachable.
 
 #### Scenario: OpenSpec by name
+- **GIVEN** any repo
 - **WHEN** sandy-skills runs `openspec init` or `openspec --help`
 - **THEN** OpenSpec gets `init` or `--help`, not sandy-skills' own init or help
 - **TEST** `test/cli.test.mjs::sandy-skills openspec SHALL pass the rest of its arguments to the OpenSpec CLI, so that OpenSpec's own init, update and help stay reachable.`
@@ -187,6 +209,7 @@ sandy-skills openspec SHALL pass the rest of its arguments to the OpenSpec CLI, 
 The help SHALL list the sandy-skills commands and say that every other command goes to OpenSpec.
 
 #### Scenario: Help
+- **GIVEN** any repo
 - **WHEN** sandy-skills runs with --help
 - **THEN** it lists init, update, check, validate, diagram, hash and confirm and names OpenSpec for the rest
 - **TEST** `test/cli.test.mjs::The help SHALL list the sandy-skills commands and say that every other command goes to OpenSpec.`
@@ -195,7 +218,8 @@ The help SHALL list the sandy-skills commands and say that every other command g
 validate SHALL run openspec validate with its arguments and then check with --junit, --out and --strict, print both outputs, and exit non-zero when either fails.
 
 #### Scenario: Validate
-- **WHEN** validate runs with OpenSpec arguments, --strict and --junit, and OpenSpec or check fails
+- **GIVEN** OpenSpec or check fails
+- **WHEN** validate runs with OpenSpec arguments, --strict and --junit
 - **THEN** OpenSpec gets its arguments and --strict, check gets --junit and --strict, both outputs are printed and the exit code is non-zero
 - **TEST** `test/cli.test.mjs::validate SHALL run openspec validate with its arguments and then check with --junit, --out and --strict, print both outputs, and exit non-zero when either fails.`
 
@@ -203,7 +227,8 @@ validate SHALL run openspec validate with its arguments and then check with --ju
 If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHALL pass the signal to OpenSpec, wait until OpenSpec ends and exit with its exit code or signal.
 
 #### Scenario: Signals
-- **WHEN** only sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs through it
+- **GIVEN** OpenSpec runs through sandy-skills
+- **WHEN** only sandy-skills gets SIGINT, SIGTERM or SIGHUP
 - **THEN** OpenSpec gets the signal and is gone when sandy-skills exits, and sandy-skills exits as OpenSpec did: with its code when it handled the signal, by the signal when it did not
 - **TEST** `test/cli.test.mjs::If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHALL pass the signal to OpenSpec, wait until OpenSpec ends and exit with its exit code or signal.`
 
@@ -211,7 +236,8 @@ If sandy-skills gets SIGINT, SIGTERM or SIGHUP while OpenSpec runs, then it SHAL
 If openspec/config.yaml sets no sandy-skills.limits, then the checker SHALL use the default warn and error thresholds.
 
 #### Scenario: Default thresholds
-- **WHEN** openspec/config.yaml has no sandy-skills.limits
+- **GIVEN** openspec/config.yaml has no sandy-skills.limits
+- **WHEN** check runs
 - **THEN** check warns above 500 words per change and blocks above 750
 - **TEST** `test/limits.test.mjs::If openspec/config.yaml sets no sandy-skills.limits, then the checker SHALL use the default warn and error thresholds.`
 
@@ -219,7 +245,8 @@ If openspec/config.yaml sets no sandy-skills.limits, then the checker SHALL use 
 When a measure of an open change is above its warn threshold and at most its error threshold, the checker SHALL report long-change as a warning.
 
 #### Scenario: Warn band
-- **WHEN** proposal.md of an open change has 151 words
+- **GIVEN** proposal.md of an open change has 151 words
+- **WHEN** check runs
 - **THEN** check reports long-change and stays releasable
 - **TEST** `test/limits.test.mjs::When a measure of an open change is above its warn threshold and at most its error threshold, the checker SHALL report long-change as a warning.`
 
@@ -227,7 +254,8 @@ When a measure of an open change is above its warn threshold and at most its err
 When a measure of an open change is above its error threshold, the checker SHALL report over-limit as an error with the file, the count and the threshold.
 
 #### Scenario: Error band
-- **WHEN** proposal.md of an open change has 226 words
+- **GIVEN** proposal.md of an open change has 226 words
+- **WHEN** check runs
 - **THEN** check reports over-limit with the file, 226 and 225, and is not releasable
 - **TEST** `test/limits.test.mjs::When a measure of an open change is above its error threshold, the checker SHALL report over-limit as an error with the file, the count and the threshold.`
 
@@ -235,7 +263,8 @@ When a measure of an open change is above its error threshold, the checker SHALL
 The checker SHALL apply the thresholds only to open changes, never to archived changes or to openspec/specs.
 
 #### Scenario: Open changes only
-- **WHEN** an archived change and a spec hold 900 words each
+- **GIVEN** an archived change and a spec hold 900 words each
+- **WHEN** check runs
 - **THEN** check reports neither
 - **TEST** `test/limits.test.mjs::The checker SHALL apply the thresholds only to open changes, never to archived changes or to openspec/specs.`
 
@@ -243,7 +272,8 @@ The checker SHALL apply the thresholds only to open changes, never to archived c
 The checker SHALL count as words only tokens with a letter or digit, outside fenced code, HTML comments, TEST lines and Prove claim texts.
 
 #### Scenario: Word count
-- **WHEN** tasks.md holds a Prove line, a code fence, a comment and a TEST line
+- **GIVEN** tasks.md holds a Prove line, a code fence, a comment and a TEST line
+- **WHEN** check counts the words
 - **THEN** only Prove, the path and the prose words count
 - **TEST** `test/limits.test.mjs::The checker SHALL count as words only tokens with a letter or digit, outside fenced code, HTML comments, TEST lines and Prove claim texts.`
 
@@ -251,7 +281,8 @@ The checker SHALL count as words only tokens with a letter or digit, outside fen
 Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use those thresholds, and openspec validate SHALL still accept the file.
 
 #### Scenario: Own thresholds
-- **WHEN** openspec/config.yaml sets warn 10 and error 20 for every measure
+- **GIVEN** openspec/config.yaml sets warn 10 and error 20 for every measure
+- **WHEN** check runs
 - **THEN** check uses 10 and 20, and openspec validate passes
 - **TEST** `test/limits.test.mjs::Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use those thresholds, and openspec validate SHALL still accept the file.`
 
@@ -259,7 +290,8 @@ Where openspec/config.yaml sets sandy-skills.limits, the checker SHALL use those
 If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.
 
 #### Scenario: Partial override
-- **WHEN** openspec/config.yaml sets proposal warn 100 only
+- **GIVEN** openspec/config.yaml sets proposal warn 100 only
+- **WHEN** check runs
 - **THEN** proposal blocks above 225 and every other measure keeps its default
 - **TEST** `test/limits.test.mjs::If sandy-skills.limits sets only part of the thresholds, then the checker SHALL take each missing key and field from the defaults.`
 
@@ -267,7 +299,8 @@ If sandy-skills.limits sets only part of the thresholds, then the checker SHALL 
 When a file of an open change uses a word of the default vague-word list, the checker SHALL report vague-word as an error with the file, line and word.
 
 #### Scenario: Vague words
-- **WHEN** proposal.md says `We should ship it soon, etc.`
+- **GIVEN** proposal.md says `We should ship it soon, etc.`
+- **WHEN** check runs
 - **THEN** check reports `should`, `etc` and `soon` with their line
 - **TEST** `test/limits.test.mjs::When a file of an open change uses a word of the default vague-word list, the checker SHALL report vague-word as an error with the file, line and word.`
 
@@ -275,7 +308,8 @@ When a file of an open change uses a word of the default vague-word list, the ch
 Where openspec/config.yaml sets sandy-skills.limits.vagueWords, the checker SHALL use that list instead of the default list.
 
 #### Scenario: Own vague words
-- **WHEN** vagueWords lists hurry and right away
+- **GIVEN** vagueWords lists hurry and right away
+- **WHEN** check runs
 - **THEN** check reports those two and no default word
 - **TEST** `test/limits.test.mjs::Where openspec/config.yaml sets sandy-skills.limits.vagueWords, the checker SHALL use that list instead of the default list.`
 
@@ -283,7 +317,8 @@ Where openspec/config.yaml sets sandy-skills.limits.vagueWords, the checker SHAL
 The checker SHALL skip fenced code, HTML comments, backticks and the keywords SHALL, WHEN, THEN, AND and GIVEN when it looks for vague words.
 
 #### Scenario: Code is no prose
-- **WHEN** a listed word stands in code, a comment, backticks or a keyword
+- **GIVEN** a listed word stands in code, a comment, backticks or a keyword
+- **WHEN** check runs
 - **THEN** check reports nothing
 - **TEST** `test/limits.test.mjs::The checker SHALL skip fenced code, HTML comments, backticks and the keywords SHALL, WHEN, THEN, AND and GIVEN when it looks for vague words.`
 
@@ -291,7 +326,8 @@ The checker SHALL skip fenced code, HTML comments, backticks and the keywords SH
 The checker SHALL read openspec/config.yaml with CRLF line endings the same as with LF line endings.
 
 #### Scenario: CRLF config
-- **WHEN** openspec/config.yaml sets total to warn 600 and error 900 with CRLF line endings
+- **GIVEN** openspec/config.yaml sets total to warn 600 and error 900 with CRLF line endings
+- **WHEN** check runs
 - **THEN** check uses 600 and 900
 - **TEST** `test/limits.test.mjs::The checker SHALL read openspec/config.yaml with CRLF line endings the same as with LF line endings.`
 
@@ -299,7 +335,8 @@ The checker SHALL read openspec/config.yaml with CRLF line endings the same as w
 The checker SHALL read thresholds only from the limits key directly under sandy-skills, never from a limits key nested deeper.
 
 #### Scenario: Direct limits key
-- **WHEN** sandy-skills.reports.limits sets total to warn 1 and sandy-skills.limits sets total to warn 600
+- **GIVEN** sandy-skills.reports.limits sets total to warn 1 and sandy-skills.limits sets total to warn 600
+- **WHEN** check runs
 - **THEN** check uses 600
 - **TEST** `test/limits.test.mjs::The checker SHALL read thresholds only from the limits key directly under sandy-skills, never from a limits key nested deeper.`
 
@@ -307,7 +344,8 @@ The checker SHALL read thresholds only from the limits key directly under sandy-
 The checker SHALL read quoted config values with commas and # as one value, and stop with a message naming the line for config syntax it does not read.
 
 #### Scenario: Quoted config values
-- **WHEN** vagueWords lists `"maybe, later"` and `"right # away"`, or a list runs over 2 lines
+- **GIVEN** vagueWords lists `"maybe, later"` and `"right # away"`, or a list runs over 2 lines
+- **WHEN** check runs
 - **THEN** check reads 2 words, or stops and names the line
 - **TEST** `test/limits.test.mjs::The checker SHALL read quoted config values with commas and # as one value, and stop with a message naming the line for config syntax it does not read.`
 
@@ -315,7 +353,8 @@ The checker SHALL read quoted config values with commas and # as one value, and 
 The checker SHALL skip a backtick code span that runs over 2 or more lines of one paragraph when it looks for vague words.
 
 #### Scenario: Multi-line code spans
-- **WHEN** proposal.md says `Run ` and a code span over 2 lines that holds a listed word
+- **GIVEN** proposal.md says `Run ` and a code span over 2 lines that holds a listed word
+- **WHEN** check runs
 - **THEN** check reports nothing
 - **TEST** `test/limits.test.mjs::The checker SHALL skip a backtick code span that runs over 2 or more lines of one paragraph when it looks for vague words.`
 
@@ -323,7 +362,8 @@ The checker SHALL skip a backtick code span that runs over 2 or more lines of on
 The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.
 
 #### Scenario: Comments and fences in order
-- **WHEN** a comment holds a fence opener, and line 4 says `We should ship soon.`
+- **GIVEN** a comment holds a fence opener, and line 4 says `We should ship soon.`
+- **WHEN** check runs
 - **THEN** check reports `should` and `soon` on line 4
 - **TEST** `test/limits.test.mjs::The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.`
 
@@ -331,6 +371,7 @@ The checker SHALL read HTML comments and fences in document order, so a fence in
 The checker SHALL count only requirement headings outside fenced code and HTML comments.
 
 #### Scenario: Requirements in prose
-- **WHEN** a delta spec has 1 requirement and 8 requirement headings in a code fence and a comment
+- **GIVEN** a delta spec has 1 requirement and 8 requirement headings in a code fence and a comment
+- **WHEN** check runs
 - **THEN** check counts 1 requirement
 - **TEST** `test/limits.test.mjs::The checker SHALL count only requirement headings outside fenced code and HTML comments.`

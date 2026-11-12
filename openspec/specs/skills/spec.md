@@ -11,6 +11,7 @@ Kind: component · Part of: sandy-skills · Carried by: nesyeklaf · Status: act
 Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.
 
 #### Scenario: Contract
+- **GIVEN** the skills folder
 - **WHEN** the skills are listed
 - **THEN** each has a matching name and a description
 - **TEST** `test/repo.test.mjs::Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.`
@@ -19,7 +20,8 @@ Each skill SHALL have a SKILL.md whose name matches its folder and whose descrip
 The skills SHALL call only the sandy-skills commands check, hash, confirm, diagram and validate. Read-only.
 
 #### Scenario: Seam to cli
-- **WHEN** a skill names a sandy-skills command
+- **GIVEN** a skill names a sandy-skills command
+- **WHEN** the repository test runs
 - **THEN** it is check, hash, confirm, diagram or validate
 - **TEST** `test/repo.test.mjs::The skills SHALL call only the sandy-skills commands check, hash, confirm, diagram and validate. Read-only.`
 
@@ -27,6 +29,7 @@ The skills SHALL call only the sandy-skills commands check, hash, confirm, diagr
 The EXAMINED line that examine-part writes SHALL be the line confirm reads.
 
 #### Scenario: Exam line
-- **WHEN** the EXAMINED line in examine-part is filled in
+- **GIVEN** the EXAMINED line in examine-part is filled in
+- **WHEN** confirm reads the line
 - **THEN** confirm parses it
 - **TEST** `test/repo.test.mjs::The EXAMINED line that examine-part writes SHALL be the line confirm reads.`
