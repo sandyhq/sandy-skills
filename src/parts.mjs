@@ -75,7 +75,8 @@ export function parsePart(spec) {
   else meta = parseMeta(lines[metaAt], problems);
   const why = normalize((metaAt < 0 ? lines : lines.slice(0, metaAt)).join(' '));
 
-  const part = { id: spec.id, why, ...meta, contract: null, seams: [], claims: [], human: [], problems };
+  const heading = String(spec.heading ?? '').replace(/\s+Specification$/, '').trim();
+  const part = { id: spec.id, title: heading || spec.id, why, ...meta, contract: null, seams: [], claims: [], human: [], problems };
   for (const requirement of spec.requirements ?? []) {
     const { refs, human } = parseLines(requirement, problems);
     part.human.push(...human);

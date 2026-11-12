@@ -13,6 +13,7 @@ One OpenSpec capability, `openspec/specs/<id>/spec.md`. This repo's [cli spec](.
 - `### Requirement: Seam to <id>`: one per neighbour; `Read-only.` or `Exclusive.` (the only writer) in the sentence.
 - Every other requirement is one claim, one [EARS](https://alistairmavin.com/ears/) sentence.
 - A scenario a test proves ends with `- **TEST** \`<path>::<test name>\``; the test name is the requirement sentence.
+- A picture of parts and seams is generated from these lines, never drawn by hand: [diagrams](diagrams.md).
 - A person's confirmation: `- **CONFIRMED** <I|We|They> by <who> on <date>, expires <date>, contract <hash>` (or `REFUTED`), at most 90 days, hash from `sandy-skills hash <id>`.
 
 ## Lights and drift
@@ -32,6 +33,7 @@ Changes use the [proven schema](../openspec/schemas/proven/schema.yaml): the pro
 ```sh
 openspec validate --all --strict
 <run the tests with a JUnit reporter>
+sandy-skills diagram --write   # after changing specs, when the repo has diagram blocks
 sandy-skills check --junit <report> --out reports/releasability.md
 ```
 

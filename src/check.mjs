@@ -1,5 +1,6 @@
 // Lights and drift for a set of parts, from test results and human confirmations. Pure: no I/O, no clock.
 import { normalize, SIDES } from './parts.mjs';
+import { diagramFindings } from './diagram.mjs';
 
 /** From weakest to strongest. A part is as proven as its weakest side. */
 export const LIGHTS = ['refuted', 'expired', 'open', 'claimed', 'soft', 'hard'];
@@ -50,12 +51,12 @@ function lightOf(test) {
 /**
  * @param parts results of parsePart
  * @param tests results of parseJUnit
- * @param opts {today: 'yyyy-mm-dd', openTasks: text of tasks.md of every open change}
+ * @param opts {today: 'yyyy-mm-dd', openTasks: text of tasks.md of every open change, diagrams: marked blocks from repoBlocks}
  */
 /** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
 const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);
 
-export function check(parts, tests, { today, openTasks = '' }) {
+export function check(parts, tests, { today, openTasks = '', diagrams = [] }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today ?? '')) throw new Error('today must be yyyy-mm-dd');
   const findings = [];
   const add = (part, kind, severity, detail, requirement) =>
@@ -161,8 +162,11 @@ export function check(parts, tests, { today, openTasks = '' }) {
     }
   }
 
+  // A stale picture is a finding of the doc that holds it, not drift of the part it shows.
+  findings.push(...diagramFindings(parts, diagrams));
+
   for (const r of results) {
-    const own = findings.filter((f) => f.part === r.id && f.severity !== 'info');
+    const own = findings.filter((f) => f.part === r.id && f.severity !== 'info' && !f.file);
     r.drift = own.map((f) => f.kind);
     for (const s of r.seams) if (s.light === 'refuted' && !r.drift.includes('break')) r.drift.push('break');
     r.light = r.drift.length ? 'drift' : weakest(Object.values(r.sides));

@@ -1,4 +1,5 @@
-// The only I/O against OpenSpec: its own CLI parses the Markdown, so sandy-skills never does.
+// The only I/O against OpenSpec: its own CLI parses the Markdown, so sandy-skills never does, except for the
+// spec's `# ` heading, which OpenSpec's JSON does not carry.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -44,7 +45,15 @@ export function loadSpecs(root) {
 }
 
 export function loadSpec(root, id) {
-  return json(root, ['show', id, '--type', 'spec', '--json', '--no-interactive']);
+  return { ...json(root, ['show', id, '--type', 'spec', '--json', '--no-interactive']), heading: specHeading(root, id) };
+}
+
+/** The text of the first `# ` line of the spec file, the human title OpenSpec's JSON leaves out; null without one. */
+function specHeading(root, id) {
+  const file = join(root, 'openspec', 'specs', id, 'spec.md');
+  if (!existsSync(file)) return null;
+  const line = readFileSync(file, 'utf8').split('\n').find((l) => /^#\s/.test(l));
+  return line ? line.replace(/^#\s+/, '').trim() : null;
 }
 
 /** The tasks.md text of every open change: a todo test listed there is planned work, not drift. */

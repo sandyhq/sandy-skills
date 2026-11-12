@@ -37,10 +37,10 @@ test("Each skill SHALL have a SKILL.md whose name matches its folder and whose d
   }
 });
 
-test("The skills SHALL call only the sandy-skills commands check, hash and confirm. Read-only.", () => {
+test("The skills SHALL call only the sandy-skills commands check, hash, confirm and diagram. Read-only.", () => {
   const used = skills.flatMap((name) => [...read(`skills/${name}/SKILL.md`).matchAll(/`sandy-skills (\w+)/g)].map((m) => m[1]));
   assert.ok(used.length > 0);
-  assert.deepEqual([...new Set(used)].filter((c) => !['check', 'hash', 'confirm'].includes(c)), []);
+  assert.deepEqual([...new Set(used)].filter((c) => !['check', 'hash', 'confirm', 'diagram'].includes(c)), []);
 });
 
 test("Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.", () => {

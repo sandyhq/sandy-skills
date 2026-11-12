@@ -10,18 +10,23 @@ import { renderMarkdown } from '../src/report.mjs';
 import { loadSpec, loadSpecs, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
 import { install, PACKAGE } from '../src/install.mjs';
 import { parseExamined, examAllows } from '../src/exam.mjs';
+import { ALL, findBlocks, refreshBlocks, renderDiagram, repoBlocks, markdownFiles } from '../src/diagram.mjs';
 
 const USAGE = `Usage:
   sandy-skills init [--tools LIST] [--skills-dir DIR]... [--root DIR]
   sandy-skills update [--skills-dir DIR]... [--root DIR]
   sandy-skills check [--root DIR] [--junit FILE|DIR]... [--today YYYY-MM-DD] [--format md|json] [--out FILE] [--strict] [--specs FILE]
+  sandy-skills diagram [<spec-id>] [--write] [--root DIR]
   sandy-skills hash <spec-id> [--root DIR]
   sandy-skills confirm <spec-id> <I|We|They> <who> [--days N] [--today YYYY-MM-DD] [--root DIR]
   sandy-skills --version
 
 init sets up OpenSpec if the repo has none (--tools goes to openspec init), then installs the proven
 schema as default and the skills next to OpenSpec's. update installs them again from this version.
-check exits 1 when the result is not releasable (any error; with --strict also any warning).
+check exits 1 when the result is not releasable (any error; with --strict also any warning), and reports
+diagram blocks that differ from the specs. diagram prints a Mermaid flowchart of every part, or of one part,
+what is below it and its neighbours; --write refreshes every <!-- sandy-skills diagram: <id|all> --> block
+in the repo's Markdown and lists the files it changed.
 confirm for the I side needs a passed exam on the current contract in .learn/<who>/exams/<spec-id>.md.`;
 
 function args(argv) {
@@ -29,6 +34,7 @@ function args(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--strict') opts.strict = true;
+    else if (a === '--write') opts.write = true;
     else if (a === '-h' || a === '--help') opts.help = true;
     else if (a === '-v' || a === '--version') opts.version = true;
     else if (a.startsWith('--')) {
@@ -68,13 +74,30 @@ function main(argv) {
   if (command === 'check') {
     const specs = opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root);
     const tests = opts.junit.flatMap(xmlFiles).flatMap((f) => parseJUnit(readFileSync(f, 'utf8')));
-    const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root) });
+    const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root) });
     if (opts.strict && result.summary.warnings > 0) result.summary.releasable = false;
     const text = (opts.format ?? 'md') === 'json' ? JSON.stringify(result, null, 2) + '\n' : renderMarkdown(result) + '\n';
     if (opts.out) { mkdirSync(dirname(resolve(opts.out)), { recursive: true }); writeFileSync(opts.out, text); }
     else process.stdout.write(text);
     if (opts.out) console.error(`${result.summary.releasable ? 'releasable' : 'not releasable'}: ${result.summary.errors} errors, ${result.summary.warnings} warnings -> ${opts.out}`);
     return result.summary.releasable ? 0 : 1;
+  }
+  if (command === 'diagram') {
+    const parts = (opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root)).map(parsePart);
+    if (!opts.write) { process.stdout.write(renderDiagram(parts, rest[0] ?? ALL)); return 0; }
+    const ids = new Set([ALL, ...parts.map((p) => p.id)]);
+    let failed = 0;
+    for (const file of markdownFiles(root)) {
+      const path = join(root, file);
+      const text = readFileSync(path, 'utf8');
+      for (const b of findBlocks(text).filter((x) => !ids.has(x.id) || !x.closed)) {
+        console.error(`${file}:${b.line}: ${ids.has(b.id) ? 'no closing <!-- /sandy-skills diagram --> line' : `"${b.id}" is no spec`}`);
+        failed++;
+      }
+      const next = refreshBlocks(text, (id) => (ids.has(id) ? renderDiagram(parts, id) : null));
+      if (next !== text) { writeFileSync(path, next); console.log(file); }
+    }
+    return failed ? 1 : 0;
   }
   if (command === 'hash' || command === 'confirm') {
     const part = parsePart(loadSpec(root, rest[0]));

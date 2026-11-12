@@ -16,10 +16,12 @@ The spec says what must hold, a test proves each claim, `sandy-skills check` com
 5. **Prove.** Run the tests the change reaches with a JUnit reporter, then:
    ```sh
    openspec validate --all --strict
+   sandy-skills diagram --write
    sandy-skills check --junit <report.xml or dir>
    ```
+   `diagram --write` refreshes the generated pictures of parts and seams in the docs; commit the files it lists.
    Fix every error. A warning stays only with a reason in the MR description.
-6. **Hand over.** Put the report (`--out reports/releasability.md`) in the MR. Name which claims are proven by a passing test and which are still open. Archive the change (`openspec archive <id>`) when the MR merges.
+6. **Hand over.** Put the report (`--out reports/releasability.md`) in the MR. Name which claims are proven by a passing test and which are still open. Archive the change (`openspec archive <id>`) when the MR merges; archiving changes the specs, so run `sandy-skills diagram --write` again and commit what it lists.
 
 ## Rules
 
