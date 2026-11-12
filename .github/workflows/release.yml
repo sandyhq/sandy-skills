@@ -1,0 +1,70 @@
+# Publishes the package when a tag v<version> is pushed.
+# Build, tests and packing run on a boat VM. Publishing runs on a GitHub-hosted runner,
+# because npm trusted publishing (OIDC, no token, provenance) does not accept self-hosted runners.
+# Run it by hand (workflow_dispatch) for a dry run that publishes nothing.
+name: release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: boat
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches package.json
+        if: github.ref_type == 'tag'
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec openspec validate --all --strict
+      - name: Test
+        run: >-
+          mkdir -p reports &&
+          node --test --test-reporter=spec --test-reporter=junit
+          --test-reporter-destination=stdout --test-reporter-destination=reports/junit.xml
+          'test/*.test.mjs'
+      - name: Prove
+        run: node bin/sandy-skills.mjs check --strict --junit reports/junit.xml --out reports/releasability.md
+      - name: Install from the packed package with npm, pnpm and bun
+        run: scripts/smoke-install.sh
+      - name: Pack
+        run: mkdir -p dist && npm pack --pack-destination dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: dist/*.tgz
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: releasability-report
+          path: reports/
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: npm 11.5.1 or newer, needed for trusted publishing
+        run: npm install -g npm@^11.5.1 && npm --version
+      - uses: actions/download-artifact@v4
+        with:
+          name: package
+      - name: Publish
+        run: |
+          tgz=$(ls *.tgz)
+          if [ "$GITHUB_REF_TYPE" = tag ]; then npm publish "$tgz" --access public
+          else npm publish "$tgz" --access public --dry-run; fi

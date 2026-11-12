@@ -25,6 +25,15 @@ scripts/smoke-install.sh   # before a release
 
 Run the first four before a commit. A test's name is the claim sentence its spec requirement states; change both together.
 
+## Releasing
+
+CI and the build run on boat VMs (`runs-on: boat`); only the publish job runs on `ubuntu-latest`, because npm trusted publishing does not accept self-hosted runners. The `npm` environment allows only `v*` tags and `main`.
+
+1. Bump `version` in `package.json`, commit, push.
+2. Tag `v<version>` and push the tag. `.github/workflows/release.yml` tests, packs and publishes with provenance. Running it by hand on `main` is a dry run.
+
+First release only: npm can trust a workflow only for a package that exists. Publish 0.1.0 once by hand (`npm login`, `npm publish --access public`), then on npmjs.com under the package's settings add the trusted publisher: owner `sandyhq`, repo `sandy-skills`, workflow `release.yml`, environment `npm`. Then set publishing access to require 2FA and disallow tokens.
+
 ## Rules
 
 - Follow `standards/repo-structure.md` here too: one fact in one place, one screen per file, no empty scaffolding.
@@ -32,4 +41,4 @@ Run the first four before a commit. A test's name is the claim sentence its spec
 - Name the projects under "Concepts adopted without their tools" only in `standards/sources.md`; elsewhere describe the idea itself.
 - The package's only runtime dependency is OpenSpec. `check` stays deterministic: same specs, report and `--today` give the same output.
 - Everything a skill or the CLI points to is a URL or ships in the package; nothing may assume a clone of this repo.
-- Publishing to npm is the owner's step: bump `version`, tag `v<version>`, `pnpm publish`.
+- Publishing to npm is the owner's step; see Releasing.
