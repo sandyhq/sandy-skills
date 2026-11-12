@@ -19,7 +19,7 @@ A change is the plan for a behaviour change, approved through the MR. It holds i
 3. **proposal.md**: the why in two sentences, what changes, the parts it creates or modifies.
 4. **Delta specs**: the part format. A new part gets its Purpose with the `Kind: … · Part of: … · Carried by: … · Status: proposed · Code: …` line, a Contract and its claims. A changed contract voids every confirmation of that part. Say so in the proposal, so the carrier knows to confirm it again.
 5. **design.md**, only when a choice is open: each decision with the alternatives rejected and why. This is the decision record; it is archived with the change and never edited later.
-6. **tasks.md**: one task per claim, naming its test as `<path>::<claim sentence>`, then the build work, each group ending with running its tests and `specproof check`.
+6. **tasks.md**: one task per claim, naming its test as `<path>::<claim sentence>`, then the build work, each group ending with running its tests and `sandy-skills check`.
 7. **Check**: `openspec validate <id> --strict`. Open the MR as draft. The owner's approval of the MR approves the change.
 
 ## Rules

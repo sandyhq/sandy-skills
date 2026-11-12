@@ -8,7 +8,7 @@ Where the standards come from. Notes on what each source contributed; read the s
 
 ## Spec and proof
 
-- [OpenSpec](https://github.com/Fission-AI/OpenSpec): specs and changes as Markdown, custom schemas (`openspec schema fork`), `openspec show --json` which `specproof` reads. Built against 2.0.0.
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec): specs and changes as Markdown, custom schemas (`openspec schema fork`), `openspec show --json` which `sandy-skills check` reads. Built against 2.0.0.
 - [EARS](https://alistairmavin.com/ears/) (Mavin et al., "Easy Approach to Requirements Syntax", 2009): the sentence patterns for claims.
 - [JUnit XML](https://github.com/testmoapp/junitxml): the report format every major test runner can write.
 

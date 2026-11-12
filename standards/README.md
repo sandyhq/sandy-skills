@@ -12,9 +12,4 @@ Where the ideas come from: [sources.md](sources.md).
 
 ## Adopting
 
-Introduce a standard repo by repo, one MR each; the repo's own `AGENTS.md` and checks win where they conflict. To adopt the spec format:
-
-1. `openspec init --tools pi,claude,codex` and commit what it generates (OpenSpec writes its skills per project, not globally).
-2. Copy [openspec/schemas/proven/](../openspec/schemas/proven/) into the repo and set `schema: proven` in `openspec/config.yaml`.
-3. Install the skills from [skills/](../skills/) where the agents load them (for example `.agents/skills/`).
-4. Add the three checks from [spec-format.md](spec-format.md#checks) to CI.
+Introduce a standard repo by repo, one MR each; the repo's own `AGENTS.md` and checks win where they conflict. To adopt the spec format, follow [Getting started](https://github.com/sandyhq/sandy-skills/blob/main/docs/getting-started.md): `sandy-skills init` sets up OpenSpec, the schema and the skills in the repo.

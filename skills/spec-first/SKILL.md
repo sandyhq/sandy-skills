@@ -1,11 +1,11 @@
 ---
 name: spec-first
-description: Build or change behaviour in a repo whose OpenSpec uses the proven schema - find the part, state each behaviour as a claim with a todo test, build until the tests pass, and prove it with specproof. Use for any code change in a repo with openspec/schemas/proven/.
+description: Build or change behaviour in a repo whose OpenSpec uses the proven schema - find the part, state each behaviour as a claim with a todo test, build until the tests pass, and prove it with sandy-skills check. Use for any code change in a repo with openspec/schemas/proven/.
 ---
 
 # Spec first
 
-The spec says what must hold, a test proves each claim, `specproof` computes what is proven. Format: [spec-format.md](../../standards/spec-format.md).
+The spec says what must hold, a test proves each claim, `sandy-skills check` computes what is proven. Format: [spec format](https://github.com/sandyhq/sandy-skills/blob/main/standards/spec-format.md). When `sandy-skills` is not on PATH, run it through the repo's package manager: `npx sandy-skills`, `pnpm exec sandy-skills` or `bunx sandy-skills`.
 
 ## Steps
 
@@ -16,10 +16,10 @@ The spec says what must hold, a test proves each claim, `specproof` computes wha
 5. **Prove.** Run the tests the change reaches with a JUnit reporter, then:
    ```sh
    openspec validate --all --strict
-   specproof check --junit <report.xml or dir>
+   sandy-skills check --junit <report.xml or dir>
    ```
    Fix every error. A warning stays only with a reason in the MR description.
-6. **Hand over.** Put the report (`--out reports/specproof.md`) in the MR. Name which claims are proven by a passing test and which are still open. Archive the change (`openspec archive <id>`) when the MR merges.
+6. **Hand over.** Put the report (`--out reports/releasability.md`) in the MR. Name which claims are proven by a passing test and which are still open. Archive the change (`openspec archive <id>`) when the MR merges.
 
 ## Rules
 

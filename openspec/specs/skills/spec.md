@@ -13,12 +13,12 @@ Each skill SHALL have a SKILL.md whose name matches its folder and whose descrip
 #### Scenario: Contract
 - **WHEN** the skills are listed
 - **THEN** each has a matching name and a description
-- **TEST** `tests/repo.test.mjs::Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.`
+- **TEST** `test/repo.test.mjs::Each skill SHALL have a SKILL.md whose name matches its folder and whose description says when to use it.`
 
-### Requirement: Seam to specproof
-The skills SHALL call only the specproof commands check, hash and confirm. Read-only.
+### Requirement: Seam to cli
+The skills SHALL call only the sandy-skills commands check, hash and confirm. Read-only.
 
-#### Scenario: Seam to specproof
-- **WHEN** a skill names a specproof command
+#### Scenario: Seam to cli
+- **WHEN** a skill names a sandy-skills command
 - **THEN** it is check, hash or confirm
-- **TEST** `tests/repo.test.mjs::The skills SHALL call only the specproof commands check, hash and confirm. Read-only.`
+- **TEST** `test/repo.test.mjs::The skills SHALL call only the sandy-skills commands check, hash and confirm. Read-only.`

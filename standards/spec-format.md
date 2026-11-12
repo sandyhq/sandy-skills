@@ -6,18 +6,18 @@ Two ideas. Every part has a why, a contract and proof from four sides, and the t
 
 ## A part
 
-One OpenSpec capability, `openspec/specs/<id>/spec.md`. This repo's [specproof spec](../openspec/specs/specproof/spec.md) is a full example.
+One OpenSpec capability, `openspec/specs/<id>/spec.md`. This repo's [cli spec](../openspec/specs/cli/spec.md) is a full example.
 
 - `## Purpose`: the why, then one line `Kind: container · Part of: <id or none> · Carried by: <who> · Status: active · Code: <paths>`. Kinds: context, system, container, component, operation. Status: proposed, active, retired.
 - `### Requirement: Contract`: what must hold, one SHALL sentence.
 - `### Requirement: Seam to <id>`: one per neighbour; `Read-only.` or `Exclusive.` (the only writer) in the sentence.
 - Every other requirement is one claim, one [EARS](https://alistairmavin.com/ears/) sentence.
 - A scenario a test proves ends with `- **TEST** \`<path>::<test name>\``; the test name is the requirement sentence.
-- A person's confirmation: `- **CONFIRMED** <I|We|They> by <who> on <date>, expires <date>, contract <hash>` (or `REFUTED`), at most 90 days, hash from `specproof hash <id>`.
+- A person's confirmation: `- **CONFIRMED** <I|We|They> by <who> on <date>, expires <date>, contract <hash>` (or `REFUTED`), at most 90 days, hash from `sandy-skills hash <id>`.
 
 ## Lights and drift
 
-Computed by `specproof` from the specs and the JUnit report of the current commit; never committed.
+Computed by `sandy-skills check` from the specs and the JUnit report of the current commit; never committed.
 
 - **It** (keeps its contract): ● hard when every referenced test passed, ✕ refuted when one failed, ○ open when one is todo, skipped or untested.
 - **I** (someone can explain it), **We** (the whole above counts on it), **They** (it holds among its neighbours): ◐ soft when a person confirmed the current contract, ◌ claimed when that person carries the part, ◇ expired after its date or when the contract changed.
@@ -32,7 +32,7 @@ Changes use the [proven schema](../openspec/schemas/proven/schema.yaml): the pro
 ```sh
 openspec validate --all --strict
 <run the tests with a JUnit reporter>
-specproof check --junit <report> --out reports/specproof.md
+sandy-skills check --junit <report> --out reports/releasability.md
 ```
 
 Skills: [spec-first](../skills/spec-first/SKILL.md), [propose-change](../skills/propose-change/SKILL.md), [confirm-part](../skills/confirm-part/SKILL.md).

@@ -98,3 +98,13 @@ test('When a part has more than 7 children, the checker SHALL warn that a level 
   assert.deepEqual(kinds(run([spec('root'), ...children(7)])), []);
   assert.deepEqual(kinds(run([spec('root'), ...children(8)])), ['too-many-children']);
 });
+
+test("When a spec has no metadata line, Contract, seam, TEST or CONFIRMED line, the checker SHALL report it as not-adopted with a warning instead of errors.", () => {
+  const plain = { id: 'p', overview: 'Does a thing for the people who need it.', requirements: [{ name: 'Thing', text: 'The system SHALL do the thing.', scenarios: [{ name: 'ok', rawText: '- **WHEN** x\n- **THEN** y' }] }] };
+  const r = run([plain]);
+  assert.deepEqual(kinds(r), ['not-adopted']);
+  assert.equal(r.findings.find((f) => f.kind === 'not-adopted').severity, 'warning');
+  assert.equal(r.summary.releasable, true);
+  const started = { ...plain, requirements: [...plain.requirements, { name: 'Contract', text: 'The p SHALL work.', scenarios: [] }] };
+  assert.ok(kinds(run([started])).includes('missing-metadata'), 'a spec that uses the format partly still gets errors');
+});

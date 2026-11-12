@@ -9,7 +9,7 @@ AI makes code faster to produce, but we still answer for what we ship. The basel
 | Stage | Checks |
 |---|---|
 | Pre-commit | Linter, formatter, style, secret scan, known CVEs, test first |
-| Commit (CI) | Unit tests, SAST, secret detection, dependency scan, `openspec validate --all --strict`, `specproof check` |
+| Commit (CI) | Unit tests, SAST, secret detection, dependency scan, `openspec validate --all --strict`, `sandy-skills check` |
 | Acceptance | Acceptance tests, deployment, DAST, vulnerability scan, SCA |
 | Production | Automatic deployment, observability; what it shows feeds back into development |
 
@@ -17,7 +17,7 @@ Development itself is pair or ensemble programming with AI support, with a perso
 
 ## Evidence per release
 
-Every release has a **releasability report**: which checks ran on that commit and what they found. For behaviour, that is the `specproof` report ([spec-format.md](spec-format.md)): each claim with the test that proves it at that commit, and each part's light. It is a CI artifact, never committed.
+Every release has a **releasability report**: which checks ran on that commit and what they found. For behaviour, that is the `sandy-skills check` report ([spec-format.md](spec-format.md)): each claim with the test that proves it at that commit, and each part's light. It is a CI artifact, never committed.
 
 ## What makes code secure
 

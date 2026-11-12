@@ -6,8 +6,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spec, TODAY } from './helpers.mjs';
 
-const BIN = new URL('../bin/specproof.mjs', import.meta.url).pathname;
-const dir = mkdtempSync(join(tmpdir(), 'specproof-'));
+const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
+const dir = mkdtempSync(join(tmpdir(), 'sandy-skills-'));
 const specsFile = join(dir, 'specs.json');
 writeFileSync(specsFile, JSON.stringify([spec('a', { tests: ['test/a.test.mjs::t'] })]));
 const junit = (status) => {

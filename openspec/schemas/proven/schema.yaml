@@ -55,7 +55,7 @@ artifacts:
       Create specification files that define WHAT the system should do.
 
       Each capability is a part of the system. Its main spec has this
-      shape, checked by `specproof check` in CI:
+      shape, checked by `sandy-skills check` in CI:
       - `## Purpose`: first the why (which goal above it serves), then one line
         `Kind: <context|system|container|component|operation> · Part of: <spec id or none> · Carried by: <who> · Status: <proposed|active|retired> · Code: <paths>`.
       - `### Requirement: Contract`: what must hold, as one SHALL sentence.
@@ -224,8 +224,8 @@ artifacts:
       is the claim sentence, and put its TEST reference in the task, for example
 
         - [ ] 1.1 Prove `src/send/retry.test.ts::If the relay times out, then the service SHALL retry once.`
-      `specproof check` accepts a todo test only while an open change lists it.
-      End every group with running the tests it reaches and `specproof check`.
+      `sandy-skills check` accepts a todo test only while an open change lists it.
+      End every group with running the tests it reaches and `sandy-skills check`.
 
       Before writing tasks, check design.md for Open Questions. If any of them
       would change what gets built, resolve them with the user first - do not

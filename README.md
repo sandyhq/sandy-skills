@@ -1,28 +1,26 @@
 # sandy-skills
 
-Engineering standards for repos where people and AI agents build together, and the tools that check them: an OpenSpec schema, a checker and agent skills.
+Engineering standards for repos where people and AI agents build together, and the tools that check them: an [OpenSpec](https://github.com/Fission-AI/OpenSpec) schema, agent skills and a checker, as one npm package.
 
-The central idea is proof next to intent. Every part of a system states why it exists and what must hold. Every behaviour is one sentence that a named test proves, and CI computes which parts are proven at this commit. Everything is Markdown in [OpenSpec](https://github.com/Fission-AI/OpenSpec) plus the tests in the code. No other tool, app or server is needed. Where the ideas come from: [sources](standards/sources.md).
+The idea is proof next to intent. Every part of a system states why it exists and what must hold. Every behaviour is one sentence that a named test proves, and CI computes which parts are proven at this commit. Everything is Markdown in OpenSpec plus the tests in the code. Where the ideas come from: [sources](standards/sources.md).
+
+## Quick start
+
+```sh
+npm install --save-dev sandy-skills @fission-ai/openspec   # or: pnpm add -D … / bun add -d …
+npx sandy-skills init --tools pi,claude,codex              # or: pnpm exec … / bunx …
+```
+
+`init` sets up OpenSpec if the repo has none, makes the `proven` schema its default and installs the skills next to OpenSpec's. Then [getting started](docs/getting-started.md) covers switching an existing OpenSpec repo and staying current, and [usage](docs/usage.md) the daily loop, the commands and CI.
 
 ## What is here
 
 - [standards/](standards/README.md): the secure engineering baseline, the spec format and the repo structure.
-- [openspec/schemas/proven/](openspec/schemas/proven/schema.yaml): the OpenSpec schema. Each change lists its claims as todo tests and keeps its decisions in `design.md`.
-- [tools/specproof/](tools/specproof/): the checker. Node 20+, no dependencies. It reads `openspec show --json` and JUnit reports, and writes lights, drift and a releasability report.
+- [openspec/schemas/proven/](openspec/schemas/proven/schema.yaml): the schema. Each change lists its claims as todo tests and keeps its decisions in `design.md`.
 - [skills/](skills/): `spec-first`, `propose-change` and `confirm-part`, in the Agent Skills format.
+- [bin/](bin/sandy-skills.mjs), [src/](src/): the `sandy-skills` CLI. Its only dependency is OpenSpec.
 - [openspec/specs/](openspec/specs/): this repo's own parts, proven by its own tests in CI.
-
-## specproof
-
-```sh
-node tools/specproof/bin/specproof.mjs check --junit reports/junit.xml        # Markdown report; exit 1 if not releasable
-node tools/specproof/bin/specproof.mjs check --junit reports/ --format json   # every JUnit file in a directory
-node tools/specproof/bin/specproof.mjs hash <spec-id>                         # contract hash for a CONFIRMED line
-node tools/specproof/bin/specproof.mjs confirm <spec-id> We <who>             # the line a person commits
-```
-
-`OPENSPEC_BIN` overrides how OpenSpec is called, for example `npx --yes @fission-ai/openspec@2.0.0`.
 
 ## Status
 
-A draft. The tools prove this repo; no other repo has adopted them yet. Adopting: [standards/README.md](standards/README.md#adopting). License: MIT.
+A draft: the tools prove this repo; no other repo has adopted them yet. License: MIT.

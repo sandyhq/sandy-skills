@@ -1,6 +1,6 @@
 ---
 name: confirm-part
-description: Interview a person to confirm one side (I, We or They) of a part's contract, and write the CONFIRMED or REFUTED line they commit. Use when specproof shows a side open or expired, before a release that needs human proof, or when the owner asks to confirm a part.
+description: Interview a person to confirm one side (I, We or They) of a part's contract, and write the CONFIRMED or REFUTED line they commit. Use when sandy-skills check shows a side open or expired, before a release that needs human proof, or when the owner asks to confirm a part.
 ---
 
 # Confirm a part
@@ -22,9 +22,9 @@ Tests prove the It side: does the part keep its contract. Three sides need a per
    - **They**: What do you send it or take from it? What has gone wrong between you and it?
 3. Compare the answers with the Purpose and Contract. Report back what matched, what was missing and where they hesitated.
 4. The person decides the result:
-   - Confirmed: `specproof confirm <id> <I|We|They> <who>` prints the line, valid 90 days by default (`--days` for fewer). The person adds it under the Contract's scenario and commits it under their own name.
+   - Confirmed: `sandy-skills confirm <id> <I|We|They> <who>` prints the line, valid 90 days by default (`--days` for fewer). The person adds it under the Contract's scenario and commits it under their own name.
    - Refuted: the same line with `REFUTED` instead of `CONFIRMED`. Then open a change (propose-change) to fix the contract or the code.
-5. Run `specproof check`. The side now shows soft, or claimed when the person carries the part themselves.
+5. Run `sandy-skills check`. The side now shows soft, or claimed when the person carries the part themselves.
 
 ## Rules
 

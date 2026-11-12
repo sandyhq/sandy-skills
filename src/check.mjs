@@ -52,6 +52,9 @@ function lightOf(test) {
  * @param tests results of parseJUnit
  * @param opts {today: 'yyyy-mm-dd', openTasks: text of tasks.md of every open change}
  */
+/** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
+const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);
+
 export function check(parts, tests, { today, openTasks = '' }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today ?? '')) throw new Error('today must be yyyy-mm-dd');
   const findings = [];
@@ -101,13 +104,15 @@ export function check(parts, tests, { today, openTasks = '' }) {
   };
 
   const results = parts.map((part) => {
-    for (const p of part.problems) add(part.id, p.kind, p.severity, p.detail, p.requirement);
+    const plain = isPlain(part);
+    if (plain) add(part.id, 'not-adopted', 'warning', 'plain OpenSpec spec: add the metadata line and a Contract to check it');
+    for (const p of part.problems) if (!(plain && p.kind === 'missing-metadata')) add(part.id, p.kind, p.severity, p.detail, p.requirement);
     if (part.kind !== null && !['context', 'system', 'container', 'component', 'operation'].includes(part.kind)) add(part.id, 'bad-kind', 'error', `kind "${part.kind}" is not context, system, container, component or operation`);
     if (part.status !== null && !['proposed', 'active', 'retired'].includes(part.status)) add(part.id, 'bad-status', 'error', `status "${part.status}" is not proposed, active or retired`);
     if (part.partOf && !byId.has(part.partOf)) add(part.id, 'unknown-parent', 'error', `Part of "${part.partOf}" is no spec`);
     if (!part.why) add(part.id, 'orphan-above', 'warning', 'Purpose states no why');
     if (part.status === 'proposed') add(part.id, 'orphan-below', 'warning', 'Status is proposed: nothing fulfils it yet');
-    if (!part.contract) add(part.id, 'no-contract', 'error', 'no "Requirement: Contract"');
+    if (!part.contract && !plain) add(part.id, 'no-contract', 'error', 'no "Requirement: Contract"');
 
     const requirements = [];
     const itLights = [];

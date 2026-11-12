@@ -8,12 +8,12 @@ Kind: system · Part of: none · Carried by: nesyeklaf · Status: active · Code
 ## Requirements
 
 ### Requirement: Contract
-The repository SHALL hold the standards, the proven schema, the specproof checker and the skills, and check each of them in CI.
+The repository SHALL hold the standards, the proven schema, the sandy-skills CLI and the skills, and check each of them in CI.
 
 #### Scenario: Contract
 - **WHEN** CI runs on the repository
 - **THEN** the standards, schema, checker and skills are present and checked
-- **TEST** `tests/repo.test.mjs::The repository SHALL hold the standards, the proven schema, the specproof checker and the skills, and check each of them in CI.`
+- **TEST** `test/repo.test.mjs::The repository SHALL hold the standards, the proven schema, the sandy-skills CLI and the skills, and check each of them in CI.`
 
 ### Requirement: Sources only
 Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.
@@ -21,4 +21,12 @@ Only standards/sources.md SHALL name the projects listed under its heading Conce
 #### Scenario: Sources only
 - **WHEN** a file other than standards/sources.md names an adopted project
 - **THEN** the repository test fails
-- **TEST** `tests/repo.test.mjs::Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.`
+- **TEST** `test/repo.test.mjs::Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.`
+
+### Requirement: Package
+The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.
+
+#### Scenario: Package
+- **WHEN** the package is packed
+- **THEN** it holds bin/, src/, skills/, the schema and standards/, and no test files
+- **TEST** `test/repo.test.mjs::The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.`

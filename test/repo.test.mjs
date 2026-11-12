@@ -12,11 +12,11 @@ const openspec = (...args) => spawnSync(cmd, [...pre, ...args], { cwd: root, enc
 const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }).stdout;
 const hasOpenspec = openspec('--version').status === 0;
 
-test("The repository SHALL hold the standards, the proven schema, the specproof checker and the skills, and check each of them in CI.", () => {
-  for (const p of ['standards/README.md', 'standards/sources.md', 'openspec/schemas/proven/schema.yaml', 'tools/specproof/bin/specproof.mjs']) assert.ok(existsSync(root + p), p);
+test("The repository SHALL hold the standards, the proven schema, the sandy-skills CLI and the skills, and check each of them in CI.", () => {
+  for (const p of ['standards/README.md', 'standards/sources.md', 'openspec/schemas/proven/schema.yaml', 'bin/sandy-skills.mjs', 'package.json']) assert.ok(existsSync(root + p), p);
   assert.deepEqual(skills, ['confirm-part', 'propose-change', 'spec-first']);
   const ci = read('.github/workflows/ci.yml');
-  for (const step of ['validate --all --strict', '--test-reporter=junit', 'specproof.mjs check']) assert.ok(ci.includes(step), step);
+  for (const step of ['validate --all --strict', '--test-reporter=junit', 'sandy-skills.mjs check']) assert.ok(ci.includes(step), step);
 });
 
 test("The proven schema SHALL pass OpenSpec schema validation and tell agents to write each part with a metadata line, a Contract and TEST lines.", { skip: hasOpenspec ? false : 'openspec not installed' }, () => {
@@ -35,8 +35,8 @@ test("Each skill SHALL have a SKILL.md whose name matches its folder and whose d
   }
 });
 
-test("The skills SHALL call only the specproof commands check, hash and confirm. Read-only.", () => {
-  const used = skills.flatMap((name) => [...read(`skills/${name}/SKILL.md`).matchAll(/`specproof (\w+)/g)].map((m) => m[1]));
+test("The skills SHALL call only the sandy-skills commands check, hash and confirm. Read-only.", () => {
+  const used = skills.flatMap((name) => [...read(`skills/${name}/SKILL.md`).matchAll(/`sandy-skills (\w+)/g)].map((m) => m[1]));
   assert.ok(used.length > 0);
   assert.deepEqual([...new Set(used)].filter((c) => !['check', 'hash', 'confirm'].includes(c)), []);
 });
@@ -51,4 +51,12 @@ test("Only standards/sources.md SHALL name the projects listed under its heading
     .filter((p) => p !== 'standards/sources.md' && !p.startsWith('openspec/changes/') && existsSync(root + p) && statSync(root + p).isFile());
   const hits = files.flatMap((p) => names.filter((n) => new RegExp(`\\b${n}`, 'i').test(read(p))).map((n) => `${p}: ${n}`));
   assert.deepEqual(hits, []);
+});
+
+test("The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.", () => {
+  const r = spawnSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  const files = JSON.parse(r.stdout)[0].files.map((f) => f.path);
+  for (const p of ['bin/sandy-skills.mjs', 'src/install.mjs', 'openspec/schemas/proven/schema.yaml', 'standards/spec-format.md', 'README.md', 'LICENSE', ...skills.map((s) => `skills/${s}/SKILL.md`)]) assert.ok(files.includes(p), p);
+  assert.deepEqual(files.filter((p) => /(^|\/)test\//.test(p) || p.startsWith('openspec/specs/') || p.startsWith('.')), []);
 });
