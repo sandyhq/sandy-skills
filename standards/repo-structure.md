@@ -41,7 +41,7 @@ spikes/              Throwaway code; what is adopted moves to services/ after re
 
 ## Why a standard
 
-Agents work only as well as their context, and find it without guidance when it sits in the same place in every repo. Who knows one repo knows all. A handover to operations becomes checkable through `runbook.md` and `test-strategy.md`. Short single-question files make reviews smaller. Nothing here is new: decision records after Nygard, a structure after arc42, `AGENTS.md` as the file several coding agents read.
+Agents work only as well as their context, and find it without guidance when it sits in the same place in every repo. Who knows one repo knows all. A handover to operations becomes checkable through `runbook.md` and `test-strategy.md`. Short single-question files make reviews smaller. Nothing here is new: decision records after Nygard, a structure after arc42, `AGENTS.md` as the file most coding agents read.
 
 ## Open
 

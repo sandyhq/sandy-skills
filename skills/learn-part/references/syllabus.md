@@ -14,7 +14,7 @@ Everything the learner needs to understand to own this repo, as topics with a so
 
 ## Order
 
-Start with what the learner must decide on or approve soon. Next comes what changes most (`git log --since=1.month --name-only`). Then the parts whose I side `sandy-skills check` shows open or expired.
+Start with what the learner must decide on or approve in the next 2 weeks. Next comes what changes most (`git log --since=1.month --name-only`). Then the parts whose I side `sandy-skills check` shows open or expired.
 
 ## Format
 

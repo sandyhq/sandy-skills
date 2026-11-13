@@ -42,3 +42,12 @@ Each code file that git tracks in this repository SHALL lie under the Code paths
 - **WHEN** the repository test runs
 - **THEN** each tracked code file has exactly 1 owner part
 - **TEST** `test/repo.test.mjs::Each code file that git tracks in this repository SHALL lie under the Code paths of exactly 1 part.`
+
+### Requirement: Docs wording
+README.md, CHANGELOG.md and the Markdown files in docs/, standards/ and skills/ SHALL hold no vague word and, outside standards/glossary.md, no word from a Not line of the glossary.
+
+#### Scenario: Docs wording
+- **GIVEN** the docs, standards and skills of this repository
+- **WHEN** the repository test runs
+- **THEN** it finds no vague word and no word from a Not line
+- **TEST** `test/repo.test.mjs::README.md, CHANGELOG.md and the Markdown files in docs/, standards/ and skills/ SHALL hold no vague word and, outside standards/glossary.md, no word from a Not line of the glossary.`

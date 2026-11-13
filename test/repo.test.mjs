@@ -8,6 +8,8 @@ import { join } from 'node:path';
 import { loadSpecs, openspecCommand } from '../src/openspec.mjs';
 import { parsePart } from '../src/parts.mjs';
 import { check } from '../src/check.mjs';
+import { DEFAULT_VAGUE_WORDS, vagueWords } from '../src/limits.mjs';
+import { wrongTermFindings } from '../src/glossary.mjs';
 import { isCode, owners } from '../src/review.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -117,4 +119,16 @@ test("A part written from the spec template SHALL pass check without missing-rel
   const parts = loadSpecs(dir).map(parsePart);
   assert.deepEqual(parts.map((p) => p.seams.map((s) => [s.to, s.relation?.value])), [[['b', 'conformist']], [['a', 'conformist']]]);
   assert.deepEqual(check(parts, [], { today: '2026-11-13' }).findings.filter((f) => /relation/.test(f.kind)), []);
+});
+
+test("README.md, CHANGELOG.md and the Markdown files in docs/, standards/ and skills/ SHALL hold no vague word and, outside standards/glossary.md, no word from a Not line of the glossary.", () => {
+  const files = git('ls-files', '-co', '--exclude-standard', 'README.md', 'CHANGELOG.md', 'docs', 'standards', 'skills').split('\n').filter((f) => f.endsWith('.md'));
+  assert.ok(files.includes('CHANGELOG.md') && files.includes('docs/usage.md') && files.includes('skills/spec-first/SKILL.md'), 'the docs are found');
+  const found = files.flatMap((file) => {
+    const text = read(file);
+    const vague = vagueWords(text, DEFAULT_VAGUE_WORDS).map(([line, word]) => `${file}:${line} vague ${word}`);
+    const wrong = file === 'standards/glossary.md' ? [] : wrongTermFindings([{ part: '-', file, text }]).map((w) => `${file}:${w.line} wrong ${w.word}`);
+    return [...vague, ...wrong];
+  });
+  assert.deepEqual(found, []);
 });

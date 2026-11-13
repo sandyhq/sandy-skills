@@ -60,7 +60,7 @@ Simple and exact; no reader can misread it.
 1. Answer first; one point per line; at most 5 items per list, 25 words per sentence.
 2. One [glossary](glossary.md) term per thing, everywhere; parts by spec id.
 3. Named subjects, active voice; "it", "this", "that" only with their noun.
-4. Numbers with units: "in 2 days", not "soon".
+4. Numbers with units: "in 2 days", not `"soon"`.
 5. Unknowns: "not known" or a range, never a guess.
 6. Constraints: hard or negotiable; decisions: owner or agent.
 7. No jargon in Why, Your decisions, Your steps; one clause explains each term new to the owner.
@@ -83,6 +83,6 @@ claims (headings) | 5 | 7
 
 Other keys count words: tokens with a letter or digit, outside code fences, comments, TEST lines and Prove claims.
 
-`vague-word` blocks release: listed words, whole, any case, outside backticks, SHALL and bold scenario keywords. Default: should, may, might, could, just, simply, probably, maybe, etc, various, appropriate, appropriately, as needed, if needed, and/or, tbd, some, several, soon, fast, quickly.
+`vague-word` blocks release: listed words, whole, any case, outside backticks, SHALL and bold scenario keywords. Default: `should, may, might, could, just, simply, probably, maybe, etc, various, appropriate, appropriately, as needed, if needed, and/or, tbd, some, several, soon, fast, quickly`.
 
 Override under `sandy-skills.limits` in `openspec/config.yaml`, as in `tasks: { error: 100 }`. Missing keys or fields keep defaults; `vagueWords` replaces the default list; other YAML stops check at its line.

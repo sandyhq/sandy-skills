@@ -4,6 +4,8 @@ Engineering standards for repos where people and AI agents build together, and t
 
 The idea is proof next to intent. Every part of a system states why it exists and what must hold. Every behaviour is one sentence that a named test proves, and CI computes which parts are proven at this commit. Everything is Markdown in OpenSpec plus the tests in the code. Where the ideas come from: [sources](standards/sources.md).
 
+The check also keeps specs and changes readable. A change warns above 500 words and is split above 750; vague words such as `should` are the error `vague-word` ([changes](standards/changes.md)). Every scenario has the lines GIVEN, WHEN, THEN, TEST, in this order. Specs use 1 word per thing from the [glossary](standards/glossary.md), plus the repo's own words in `docs/glossary.md`; a word from a Not line is the error `wrong-term`. Each seam names how its 2 parts relate in a `Relation:` line. `sandy-skills review-time` estimates the review minutes of a merge request and blocks one with more than 60 minutes, more than 400 code lines or other than 1 change ([usage](docs/usage.md)). What each version added: [changelog](CHANGELOG.md).
+
 ## Quick start
 
 ```sh

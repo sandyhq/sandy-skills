@@ -44,3 +44,33 @@ To go back: set `schema: spec-driven` again and delete `openspec/schemas/proven/
 ## 4. Stay current
 
 Upgrade the package, then run `sandy-skills update` and commit the diff. It replaces the schema and the skills with that version's; edits to your copies are lost, so change the standard upstream instead. `sandy-skills openspec update` refreshes OpenSpec's own skills.
+
+## 5. Upgrade to 0.7 from 0.4 or older
+
+Upgrade the package and run `sandy-skills update` (section 4). These findings are new errors, so `check` and CI fail until you fix them ([changelog](https://github.com/sandyhq/sandy-skills/blob/main/CHANGELOG.md)):
+
+| Finding | Since | Blocks |
+|---|---|---|
+| `over-limit` | 0.5 | an open change over 750 words, a file over its limit, or more than 7 claims |
+| `vague-word` | 0.5 | a word such as `should`, `may` or `etc` in an open change |
+| `scenario-shape` | 0.5 | a scenario without the lines GIVEN, WHEN, THEN, TEST in this order |
+| `long-review` | 0.6 | an open change of more than 60 estimated review minutes |
+| `wrong-term` | 0.7 | a word from a Not line of the [glossary](https://github.com/sandyhq/sandy-skills/blob/main/standards/glossary.md) in specs and open changes |
+| `missing-relation`, `bad-relation` | 0.7 | a seam without a valid line `Relation: <value> · Upstream: <id>` |
+| `unowned-file`, `no-change` and the other `review-time` errors | 0.6 | a merge request with a code file no part owns, with 0 or 2 or more changes, or over 60 minutes or 400 code lines |
+
+Fix them in this order:
+
+1. Give each scenario its GIVEN and TEST lines: the starting state moves out of WHEN into GIVEN, `GIVEN any repo` when it does not matter.
+2. Split each open change over the limits into 2 changes, and replace its vague words.
+3. Write `docs/glossary.md` with the words of your domain (entry format: [repo structure](https://github.com/sandyhq/sandy-skills/blob/main/standards/repo-structure.md)), then replace each `wrong-term` word that is left.
+4. Give each seam its Relation line, with 1 of the 7 values of the glossary.
+5. Extend the Code lines of the parts until each code file git tracks lies under exactly 1 part.
+6. Then add the `review-time` job to CI ([usage](usage.md#ci)).
+
+## 6. What a repo needs besides init
+
+- Tests with a JUnit reporter that write into `reports/` ([JUnit reports](usage.md#junit-reports)).
+- A CI job that runs `sandy-skills validate --all --strict --junit reports/`, and on merge requests `sandy-skills review-time` ([CI](usage.md#ci)).
+- An `AGENTS.md` that names the checks to run before a commit and tells agents to work spec first ([repo structure](https://github.com/sandyhq/sandy-skills/blob/main/standards/repo-structure.md)).
+- The checks and release evidence of the [secure engineering baseline](https://github.com/sandyhq/sandy-skills/blob/main/standards/secure-engineering-baseline.md).

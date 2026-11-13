@@ -20,7 +20,7 @@ A person confirms a part with the `confirm-part` skill: `sandy-skills hash <id>`
 Agents build faster than people follow. Two skills close the gap, both hands-on in the real repo:
 
 - **`learn-part`** teaches one part or topic per session. You predict first, read the spec, tests and code yourself, and explain it back without notes. Then you trace, break and extend it in a scratch worktree, and write the part's intent in your own words. Earlier topics come back after 1, 3, 7, 21 and 60 days.
-- **`examine-part`** is the exam. Run it with a fresh agent of another model family than the one that taught you. It seals an answer key before the first question. It asks why-chains, what-ifs and traps, and plants bugs, including some the tests miss. There's no partial credit, and test runs grade the practical tasks.
+- **`examine-part`** is the exam. Run it with a fresh agent of another model family than the one that taught you. It seals an answer key before the first question. It asks why-chains, what-ifs and traps, and plants bugs, also bugs the tests miss. There's no partial credit, and test runs grade the practical tasks.
 
 Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I side of a part, you need a passed exam on its current contract from the last 90 days; `sandy-skills confirm <id> I <who>` checks `.learn/<who>/exams/<id>.md`.
 
@@ -53,7 +53,7 @@ sandy-skills:
 
 ## JUnit reports
 
-`node --test --test-reporter=junit --test-reporter-destination=reports/junit.xml` · `vitest run --reporter=junit --outputFile=reports/junit.xml` · `bun test --reporter=junit --reporter-outfile=reports/junit.xml` · jest with `jest-junit` · `pytest --junitxml=reports/junit.xml` · `gotestsum --junitfile reports/junit.xml` · `cargo nextest` with a JUnit profile.
+`vitest run --reporter=junit --outputFile=reports/junit.xml` · Vite+, which runs Vitest: `vp test run --reporter=junit --outputFile=reports/junit.xml` (tried with vite-plus 1.6.0) · `node --test --test-reporter=junit --test-reporter-destination=reports/junit.xml` · `bun test --reporter=junit --reporter-outfile=reports/junit.xml` · jest with `jest-junit` · `pytest --junitxml=reports/junit.xml` · `gotestsum --junitfile reports/junit.xml` · `cargo nextest` with a JUnit profile.
 
 ## CI
 
@@ -73,3 +73,34 @@ GitHub Actions with pnpm (npm: `npm ci` and `npx`; bun: `bun install --frozen-lo
 ```
 
 GitLab CI runs the same commands in a `node:22` job and keeps `reports/` as `artifacts`, with `artifacts:reports:junit` for the test view. The report is an artifact of the commit; never commit it.
+
+`review-time` gates each merge request against its target branch, so it needs the full history. GitHub Actions:
+
+```yaml
+review-time:
+  if: github.event_name == 'pull_request'
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+      with: { fetch-depth: 0 }
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with: { node-version: 22, cache: pnpm }
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm exec sandy-skills review-time --base origin/main
+```
+
+GitLab CI, with the target branch of the merge request:
+
+```yaml
+review-time:
+  image: node:22
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GIT_DEPTH: 0
+  script:
+    - corepack enable && pnpm install --frozen-lockfile
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - pnpm exec sandy-skills review-time --base "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+```
