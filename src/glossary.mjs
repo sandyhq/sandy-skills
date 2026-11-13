@@ -36,14 +36,15 @@ export function parseGlossary(text) {
 
 /**
  * The glossary check uses: the standard's entries and the repo's entries. A word the repo glossary defines as a
- * heading is never a Not term. nots keep the order of the entries: the standard first, then the repo.
+ * heading is never a Not term, in its singular or its plural. nots keep the order of the entries: the standard first, then the repo.
  */
 export function mergeGlossaries(standardText, repoText = '') {
   const std = parseGlossary(standardText);
   const repo = parseGlossary(repoText);
-  const defined = new Set(repo.entries.map((e) => e.word.toLowerCase()));
+  const same = (a, b) => new RegExp(`^(?:${termRe(a).source})$`, 'iu').test(b.trim());
+  const defined = (term) => repo.entries.some((e) => same(term, e.word) || same(e.word, term));
   const nots = [...std.entries, ...repo.entries].flatMap((e) => e.not.map((n) => ({ ...n, word: e.word })))
-    .filter((n) => !defined.has(n.term.toLowerCase()));
+    .filter((n) => !defined(n.term));
   return { words: [...std.entries, ...repo.entries].map((e) => e.word), nots, relations: std.relations };
 }
 

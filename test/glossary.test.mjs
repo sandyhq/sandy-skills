@@ -101,3 +101,12 @@ test("check SHALL read each level 2 heading of a glossary as CommonMark does, wi
   assert.deepEqual(g.nots.map((n) => n.term), ['story']);
   assert.deepEqual(parseGlossary('## C# ##\nA language.\n').entries.map((e) => e.word), ['C#']);
 });
+
+test("check SHALL never report the singular or the plural of a word that docs/glossary.md defines.", () => {
+  const std = '# G\n\n## merge request\nA change.\nNot: PR, story\n';
+  const found = (repo, text) => wrongTermFindings([{ part: 'a', file: 'f.md', text }], mergeGlossaries(std, repo)).map((f) => f.word);
+  assert.deepEqual(found('## PRs\nPurchase requests.\n', 'PRs are purchase requests, 1 PR each.\n'), []);
+  assert.deepEqual(found('## PR\nA purchase request.\n', 'PRs are purchase requests.\n'), []);
+  assert.deepEqual(found('## stories\nTales.\n', 'A story.\n'), []);
+  assert.deepEqual(found('## PRO\nA tier.\n', 'A PR.\n'), ['PR']);
+});
