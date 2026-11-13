@@ -2,7 +2,7 @@
 
 - Target 20 minutes, warn above 30, fail above 60.
 - Code lines: warn above 200, fail above 400, whatever the minutes.
-- One change is one merge request; a diff with 0 changes fails too.
+- One change is one merge request. A merge request without a change: Blocked.
 
 ## Agent decisions
 
