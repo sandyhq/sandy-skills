@@ -3,7 +3,7 @@
 ## Purpose
 Keeps the pictures of parts and seams equal to the specs, so that a picture in the docs can be trusted like the specs it comes from.
 
-Kind: component · Part of: cli · Carried by: nesyeklaf · Status: active · Code: src/diagram.mjs, bin/
+Kind: component · Part of: cli · Carried by: nesyeklaf · Status: active · Code: src/diagram.mjs
 
 ## Requirements
 

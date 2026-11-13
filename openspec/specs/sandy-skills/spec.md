@@ -3,7 +3,7 @@
 ## Purpose
 Gives repos where people and AI agents build together one set of standards and the tools that check them.
 
-Kind: system · Part of: none · Carried by: nesyeklaf · Status: active · Code: standards/, README.md, .github/
+Kind: system · Part of: none · Carried by: nesyeklaf · Status: active · Code: standards/, README.md, .github/, scripts/, LICENSE, .gitignore, .agents/, .claude/
 
 ## Requirements
 
@@ -33,3 +33,12 @@ The npm package SHALL contain the CLI, the proven schema, the skills and the sta
 - **WHEN** the package is packed
 - **THEN** it holds bin/, src/, skills/, the schema and standards/, and no test files
 - **TEST** `test/repo.test.mjs::The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.`
+
+### Requirement: One owner per file
+Each code file that git tracks in this repository SHALL lie under the Code paths of exactly 1 part.
+
+#### Scenario: One owner per file
+- **GIVEN** the repository
+- **WHEN** the repository test runs
+- **THEN** each tracked code file has exactly 1 owner part
+- **TEST** `test/repo.test.mjs::Each code file that git tracks in this repository SHALL lie under the Code paths of exactly 1 part.`

@@ -8,6 +8,7 @@ const root = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(root + p, 'utf8');
 const skills = readdirSync(root + 'skills', { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
 import { openspecCommand } from '../src/openspec.mjs';
+import { isCode, owners } from '../src/review.mjs';
 const [cmd, ...pre] = openspecCommand(root);
 const openspec = (...args) => spawnSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8' });
 const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }).stdout;
@@ -85,4 +86,15 @@ test("The EXAMINED line that examine-part writes SHALL be the line confirm reads
   assert.ok(template, 'examine-part shows the line');
   const filled = template.replace('<who>', 'bo').replace('<date>', '2026-11-12').replace('<passed|failed>', 'passed').replace('<contract hash>', 'ab12cd34').replace('<key hash>', '0123abcd');
   assert.deepEqual(parseExamined(filled), [{ who: 'bo', on: '2026-11-12', result: 'passed', contract: 'ab12cd34', key: '0123abcd' }]);
+});
+
+test("Each code file that git tracks in this repository SHALL lie under the Code paths of exactly 1 part.", () => {
+  const parts = readdirSync(root + 'openspec/specs').filter((id) => existsSync(root + `openspec/specs/${id}/spec.md`)).map((id) => {
+    const meta = read(`openspec/specs/${id}/spec.md`).split('\n').find((l) => /^Kind:/.test(l)) ?? '';
+    const code = meta.split(/\s+·\s+/).find((s) => /^Code:/.test(s)) ?? 'Code:';
+    return { id, code: code.replace(/^Code:\s*/, '').split(/\s*,\s*/).filter(Boolean) };
+  });
+  const files = git('ls-files').trim().split('\n').filter((f) => isCode(f));
+  assert.ok(files.includes('bin/sandy-skills.mjs') && files.includes('package.json'));
+  assert.deepEqual(files.map((f) => [f, owners(f, parts)]).filter(([, o]) => o.length !== 1), []);
 });

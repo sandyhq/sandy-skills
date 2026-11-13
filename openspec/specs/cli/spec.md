@@ -3,7 +3,7 @@
 ## Purpose
 Computes from the specs and the test report which parts are proven, so that a release carries evidence instead of a promise.
 
-Kind: container · Part of: sandy-skills · Carried by: nesyeklaf · Status: active · Code: bin/, src/
+Kind: container · Part of: sandy-skills · Carried by: nesyeklaf · Status: active · Code: bin/, src/, package.json
 
 ## Requirements
 
