@@ -18,6 +18,7 @@ The oven SHALL keep its promise.
 
 ### Requirement: Seam to orders
 The oven SHALL read the next order from the order book. Read-only.
+Relation: conformist · Upstream: orders
 
 #### Scenario: Seam to orders
 - **GIVEN** any repo

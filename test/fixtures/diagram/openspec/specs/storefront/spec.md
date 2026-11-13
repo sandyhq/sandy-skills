@@ -18,6 +18,7 @@ The storefront SHALL keep its promise.
 
 ### Requirement: Seam to orders
 The storefront SHALL hand each order to the order book.
+Relation: customer-supplier · Upstream: orders
 
 #### Scenario: Seam to orders
 - **GIVEN** any repo

@@ -61,7 +61,10 @@ export function renderDiagram(parts, id = ALL) {
   for (const p of parts) {
     for (const s of p.seams) {
       if (!inside.has(p.id) && !inside.has(s.to)) continue;
-      edges.push({ from: p.id, to: s.to, arrow: s.exclusive ? '-->|exclusive|' : s.readOnly ? '-.->|read-only|' : '-->' });
+      // The label reads the relation first, then exclusive or read-only.
+      const words = [s.relation?.value, s.exclusive ? 'exclusive' : s.readOnly ? 'read-only' : null].filter(Boolean).join(', ');
+      const arrow = !s.exclusive && s.readOnly ? '-.->' : '-->';
+      edges.push({ from: p.id, to: s.to, arrow: words ? `${arrow}|${words}|` : arrow });
     }
   }
   edges.sort((a, b) => (a.from + '\0' + a.to < b.from + '\0' + b.to ? -1 : a.from + '\0' + a.to > b.from + '\0' + b.to ? 1 : 0));

@@ -59,6 +59,15 @@ function lightOf(test) {
  *   changes: open changes from readOpenChanges, limits: from readLimits, review: from readReview, specFiles: from readSpecFiles,
  *   glossary: from readGlossary, default the package's standards/glossary.md alone}
  */
+/** missing-relation or bad-relation for a seam: 1 of the glossary's values, and an upstream that is 1 of its 2 parts. */
+function relationFinding(part, seam, values, add) {
+  const r = seam.relation;
+  if (!r) return add(part.id, 'missing-relation', 'error', `seam to "${seam.to}" has no line "Relation: <value> · Upstream: <id>"`, seam.name);
+  if (r.malformed) return add(part.id, 'bad-relation', 'error', 'the Relation line is not "Relation: <value> · Upstream: <id>"', seam.name);
+  if (!values.includes(r.value)) add(part.id, 'bad-relation', 'error', `Relation: ${r.value} is not 1 of the ${values.length} values of the glossary: ${values.join(', ')}`, seam.name);
+  if (r.upstream !== part.id && r.upstream !== seam.to) add(part.id, 'bad-relation', 'error', `Upstream: ${r.upstream} is neither ${part.id} nor ${seam.to}`, seam.name);
+}
+
 /** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
 const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);
 
@@ -135,9 +144,10 @@ export function check(parts, tests, { today, openTasks = '', diagrams = [], chan
     }
     const seams = part.seams.map((seam) => {
       if (!byId.has(seam.to)) add(part.id, 'unknown-seam-target', 'error', `seam to "${seam.to}" names no spec`, seam.name);
+      relationFinding(part, seam, glossary.relations, add);
       const t = proveRequirement(part, seam, true);
       requirements.push({ name: seam.name, role: 'seam', text: seam.text, tests: t });
-      return { to: seam.to, readOnly: seam.readOnly, exclusive: seam.exclusive, light: weakest(t.map((x) => x.light)) };
+      return { to: seam.to, relation: seam.relation?.value ?? null, upstream: seam.relation?.upstream ?? null, readOnly: seam.readOnly, exclusive: seam.exclusive, light: weakest(t.map((x) => x.light)) };
     });
     const sides = { I: 'open', It: weakest(itLights), We: 'open', They: 'open' };
     const confirmations = [];

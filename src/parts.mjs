@@ -8,6 +8,9 @@ export const SIDES = ['I', 'We', 'They'];
 const ID = '[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*';
 const META_KEYS = { 'kind': 'kind', 'part of': 'partOf', 'carried by': 'carriedBy', 'status': 'status', 'code': 'code' };
 const SEAM_RE = new RegExp(`^Seam to (${ID})$`);
+// The relation of a seam: `Relation: <value> · Upstream: <id>`, its own line in the seam's text.
+const RELATION_LINE = /^\s*Relation\s*:.*$/m;
+const RELATION_RE = new RegExp(`^\\s*Relation\\s*:\\s*([a-z-]+)\\s*·\\s*Upstream\\s*:\\s*(${ID})\\s*$`);
 const TEST_RE = /^-\s+\*\*TEST\*\*\s+`([^`]+)`\s*$/;
 const HUMAN_RE = /^-\s+\*\*(CONFIRMED|REFUTED)\*\*\s+(.*)$/;
 const HUMAN_BODY_RE = /^(I|We|They)\s+by\s+(\S+)\s+on\s+(\d{4}-\d{2}-\d{2}),\s*expires\s+(\d{4}-\d{2}-\d{2}),\s*contract\s+([0-9a-f]{8})$/;
@@ -85,7 +88,12 @@ export function parsePart(spec) {
     if (requirement.name.trim() === 'Contract') {
       part.contract = { name: 'Contract', text, hash: contractHash(text), refs };
     } else if (seam) {
-      part.seams.push({ name: requirement.name, to: seam[1], text, readOnly: /\bRead-only\./.test(text), exclusive: /\bExclusive\./.test(text), refs });
+      // The Relation line stays out of the claim sentence: the sentence stays the test name.
+      const line = RELATION_LINE.exec(requirement.text ?? '')?.[0] ?? null;
+      const r = line && RELATION_RE.exec(line);
+      const relation = line === null ? null : r ? { value: r[1], upstream: r[2] } : { value: null, upstream: null, malformed: line.trim() };
+      const claim = line === null ? text : normalize(String(requirement.text).replace(RELATION_LINE, ''));
+      part.seams.push({ name: requirement.name, to: seam[1], text: claim, relation, readOnly: /\bRead-only\./.test(claim), exclusive: /\bExclusive\./.test(claim), refs });
     } else {
       part.claims.push({ name: requirement.name, text, refs });
     }

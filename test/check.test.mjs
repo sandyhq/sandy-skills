@@ -82,7 +82,7 @@ test('If Part of names no spec or leads back to the part, then the checker SHALL
 });
 
 test('When a part has an exclusive seam to a target that a part outside it writes to, the checker SHALL report a contradiction.', () => {
-  const seam = (to, flag) => [`Seam to ${to}`, `It SHALL write to ${to}.${flag ? ' ' + flag : ''}`];
+  const seam = (to, flag) => [`Seam to ${to}`, `It SHALL write to ${to}.${flag ? ' ' + flag : ''}\nRelation: conformist · Upstream: ${to}`];
   const parts = (otherFlag, otherPartOf = 'none') => [
     spec('db'),
     spec('a', { requirements: [seam('db', 'Exclusive.')] }),
@@ -107,4 +107,24 @@ test("When a spec has no metadata line, Contract, seam, TEST or CONFIRMED line, 
   assert.equal(r.summary.releasable, true);
   const started = { ...plain, requirements: [...plain.requirements, { name: 'Contract', text: 'The p SHALL work.', scenarios: [] }] };
   assert.ok(kinds(run([started])).includes('missing-metadata'), 'a spec that uses the format partly still gets errors');
+});
+
+const relation = (line) => [spec('init'), spec('diagram'), spec('cli', { requirements: [['Seam to init', `The cli SHALL install the schema with init.${line === null ? '' : '\n' + line}`]] })];
+const relationFindings = (r) => r.findings.filter((f) => /relation/.test(f.kind)).map(({ part, kind, severity, requirement, detail }) => ({ part, kind, severity, requirement, detail }));
+
+test("check SHALL report bad-relation as an error when a Relation line names a value outside the 7 values of the glossary or an upstream that is neither part of its seam.", () => {
+  assert.deepEqual(relationFindings(run(relation('Relation: conformist · Upstream: init'))), []);
+  assert.deepEqual(relationFindings(run(relation('Relation: conformist · Upstream: cli'))), []);
+  const upstream = run(relation('Relation: conformist · Upstream: diagram'));
+  assert.deepEqual(relationFindings(upstream), [{ part: 'cli', kind: 'bad-relation', severity: 'error', requirement: 'Seam to init', detail: 'Upstream: diagram is neither cli nor init' }]);
+  assert.equal(upstream.summary.releasable, false);
+  assert.deepEqual(relationFindings(run(relation('Relation: friendship · Upstream: init'))).map((f) => f.detail), ['Relation: friendship is not 1 of the 7 values of the glossary: partnership, shared-kernel, customer-supplier, conformist, anticorruption-layer, open-host-service, published-language']);
+  assert.deepEqual(relationFindings(run(relation('Relation: conformist'))).map((f) => f.detail), ['the Relation line is not "Relation: <value> · Upstream: <id>"']);
+  assert.equal(parsePart(relation('Relation: conformist · Upstream: init')[2]).seams[0].text, 'The cli SHALL install the schema with init.', 'the Relation line stays out of the claim sentence');
+});
+
+test("check SHALL report missing-relation as an error for a seam without a Relation line.", () => {
+  const r = run(relation(null));
+  assert.deepEqual(relationFindings(r), [{ part: 'cli', kind: 'missing-relation', severity: 'error', requirement: 'Seam to init', detail: 'seam to "init" has no line "Relation: <value> · Upstream: <id>"' }]);
+  assert.equal(r.summary.releasable, false);
 });

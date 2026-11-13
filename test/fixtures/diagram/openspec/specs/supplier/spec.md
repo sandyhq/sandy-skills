@@ -18,6 +18,7 @@ The flour supplier SHALL keep its promise.
 
 ### Requirement: Seam to kitchen
 The supplier SHALL deliver flour to the kitchen each week.
+Relation: customer-supplier · Upstream: supplier
 
 #### Scenario: Seam to kitchen
 - **GIVEN** any repo

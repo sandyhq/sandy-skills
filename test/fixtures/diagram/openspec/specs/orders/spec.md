@@ -18,6 +18,7 @@ The order book SHALL keep its promise.
 
 ### Requirement: Seam to ledger
 The order book SHALL book every paid order in the ledger. Exclusive.
+Relation: customer-supplier · Upstream: ledger
 
 #### Scenario: Seam to ledger
 - **GIVEN** any repo

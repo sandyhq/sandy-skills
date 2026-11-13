@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path';
 import { loadSpecs } from '../src/openspec.mjs';
 import { parsePart } from '../src/parts.mjs';
 import { label, renderDiagram } from '../src/diagram.mjs';
-import { TODAY } from './helpers.mjs';
+import { spec, TODAY } from './helpers.mjs';
 
 const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
 const FIXTURE = new URL('./fixtures/diagram', import.meta.url).pathname;
@@ -27,10 +27,10 @@ const ALL = `flowchart LR
     p_storefront["Storefront"]
   end
   p_supplier["Flour supplier"]
-  p_orders -->|exclusive| p_ledger
-  p_oven -.->|read-only| p_orders
-  p_storefront --> p_orders
-  p_supplier --> p_kitchen
+  p_orders -->|customer-supplier, exclusive| p_ledger
+  p_oven -.->|conformist, read-only| p_orders
+  p_storefront -->|customer-supplier| p_orders
+  p_supplier -->|customer-supplier| p_kitchen
   classDef proposed stroke-dasharray: 5 5
   class p_storefront proposed
   classDef retired fill:#eee,stroke:#999,color:#999
@@ -70,7 +70,7 @@ test('The diagram SHALL draw a part that has parts below it as a subgraph nested
 });
 
 test('The diagram SHALL draw each seam as an edge to its target: solid and labelled exclusive for an exclusive seam, dotted and labelled read-only for a read-only seam, plain otherwise.', () => {
-  const lines = renderDiagram(parts).split('\n');
+  const lines = renderDiagram(parts.map((p) => ({ ...p, seams: p.seams.map((s) => ({ ...s, relation: null })) }))).split('\n');
   for (const edge of ['  p_orders -->|exclusive| p_ledger', '  p_oven -.->|read-only| p_orders', '  p_storefront --> p_orders', '  p_supplier --> p_kitchen']) assert.ok(lines.includes(edge), edge);
   assert.equal(lines.filter((l) => /-->|-\.->/.test(l)).length, 4);
 });
@@ -89,16 +89,16 @@ test('When given a part id, diagram SHALL show that part, every part below it an
   p_ledger["Ledger"]
   p_storefront["Storefront"]
   p_supplier["Flour supplier"]
-  p_orders -->|exclusive| p_ledger
-  p_oven -.->|read-only| p_orders
-  p_storefront --> p_orders
-  p_supplier --> p_kitchen
+  p_orders -->|customer-supplier, exclusive| p_ledger
+  p_oven -.->|conformist, read-only| p_orders
+  p_storefront -->|customer-supplier| p_orders
+  p_supplier -->|customer-supplier| p_kitchen
   classDef proposed stroke-dasharray: 5 5
   class p_storefront proposed
   classDef retired fill:#eee,stroke:#999,color:#999
   class p_ledger retired
 `);
-  assert.equal(renderDiagram(parts, 'oven'), 'flowchart LR\n  p_oven["Oven"]\n  p_orders["Order book"]\n  p_oven -.->|read-only| p_orders\n');
+  assert.equal(renderDiagram(parts, 'oven'), 'flowchart LR\n  p_oven["Oven"]\n  p_orders["Order book"]\n  p_oven -.->|conformist, read-only| p_orders\n');
   assert.throws(() => renderDiagram(parts, 'bakery'), /no spec "bakery"/);
 });
 
@@ -192,4 +192,12 @@ test('The diagram SHALL write each title so that Mermaid shows it exactly as the
   assert.equal(label('say "hi" #1'), '"say #quot;hi#quot; #35;1"');
   assert.equal(label('A <b>bold</b> B'), '"A #lt;b#gt;bold#lt;/b#gt; B"');
   assert.equal(renderDiagram([bare('a', 'A #35; B')]), 'flowchart LR\n  p_a["A #35;35; B"]\n');
+});
+
+test("The diagram SHALL write the relation of each seam on its arrow.", () => {
+  const cli = (flag) => [spec('init'), spec('cli', { requirements: [['Seam to init', `The cli SHALL install the schema with init.${flag}\nRelation: conformist · Upstream: init`]] })].map(parsePart);
+  assert.ok(renderDiagram(cli('')).split('\n').includes('  p_cli -->|conformist| p_init'));
+  assert.ok(renderDiagram(cli(' Read-only.')).split('\n').includes('  p_cli -.->|conformist, read-only| p_init'));
+  assert.ok(renderDiagram(cli(' Exclusive.')).split('\n').includes('  p_cli -->|conformist, exclusive| p_init'));
+  for (const edge of ['  p_orders -->|customer-supplier, exclusive| p_ledger', '  p_oven -.->|conformist, read-only| p_orders', '  p_storefront -->|customer-supplier| p_orders', '  p_supplier -->|customer-supplier| p_kitchen']) assert.ok(renderDiagram(parts).split('\n').includes(edge), edge);
 });

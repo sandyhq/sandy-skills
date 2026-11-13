@@ -24,7 +24,7 @@ A picture of the system next to the specs helps people find their way, but drawn
 
 ## What the picture shows
 
-A part with parts below it is a subgraph, nested by `Part of`; every other part is a node labelled with its spec's title. Each seam is an edge: solid and labelled `exclusive` for an exclusive seam, dotted and labelled `read-only` for a read-only one, plain otherwise. Proposed parts have a dashed outline, retired parts are grey. Blocks are read outside code fences only, and not under `.git`, `node_modules` or `openspec/changes/archive`. Format of the specs: [spec format](spec-format.md).
+A part with parts below it is a subgraph, nested by `Part of`; every other part is a node labelled with its spec's title. Each seam is an edge: solid and labelled `exclusive` for an exclusive seam, dotted and labelled `read-only` for a read-only one, plain otherwise. The label starts with the seam's relation, for example `open-host-service, read-only`. Proposed parts have a dashed outline, retired parts are grey. Blocks are read outside code fences only, and not under `.git`, `node_modules` or `openspec/changes/archive`. Format of the specs: [spec format](spec-format.md).
 
 ## Example
 
@@ -43,6 +43,6 @@ flowchart LR
     p_proven_2d_schema["proven-schema"]
     p_skills["skills"]
   end
-  p_skills -.->|read-only| p_cli
+  p_skills -.->|open-host-service, read-only| p_cli
 ```
 <!-- /sandy-skills diagram -->

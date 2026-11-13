@@ -10,7 +10,7 @@ One part (an OpenSpec `capability`), `openspec/specs/<id>/spec.md`, worded with 
 
 - `## Purpose`: the why, then one line `Kind: container · Part of: <id or none> · Carried by: <who> · Status: active · Code: <paths>`. Kinds: context, system, container, component, operation. Status: proposed, active, retired.
 - `### Requirement: Contract`: what must hold, one SHALL sentence.
-- `### Requirement: Seam to <id>`: one per neighbour; `Read-only.` or `Exclusive.` (the only writer) in the sentence.
+- `### Requirement: Seam to <id>`: one per neighbour; `Read-only.` or `Exclusive.` (the only writer) in the sentence; below it the line `Relation: <value> · Upstream: <id>`, with 1 of the 7 values of the [glossary](glossary.md#relation). `sandy-skills check` reports a seam without that line as `missing-relation` and a wrong value or upstream as `bad-relation`, both errors.
 - Every other `### Requirement:` heading is one claim, one [EARS](https://alistairmavin.com/ears/) sentence.
 - Every scenario has the lines `- **GIVEN**` (the starting state; `GIVEN any repo` when it does not matter), `- **WHEN**` (the action), `- **THEN**` (the outcome) and `- **TEST** \`<path>::<test name>\``, in this order. `- **AND**` lines are allowed after GIVEN, WHEN or THEN. The test name is the claim sentence. `sandy-skills check` reports every other shape as the error `scenario-shape`, in `openspec/specs/` and in open changes.
 - A picture of parts and seams is generated from these lines, never drawn by hand: [diagrams](diagrams.md).
