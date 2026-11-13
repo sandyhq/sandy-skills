@@ -3,7 +3,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { countWords, DEFAULT_REVIEW, DEFAULT_WEIGHTS, proseLines } from './limits.mjs';
+import { countWords, DEFAULT_REVIEW, DEFAULT_WEIGHTS, proseLines, enforced } from './limits.mjs';
 import { mainSpecFiles } from './openspec.mjs';
 
 export { DEFAULT_REVIEW, DEFAULT_WEIGHTS, readReview } from './limits.mjs';
@@ -152,11 +152,14 @@ export function changeReview(changes, review = DEFAULT_REVIEW) {
 
 const num = (x) => String(Math.round(x * 10) / 10);
 
-/** The report and the exit code: total minutes, one line per share, the thresholds, then the findings; 1 on any error. */
-export function renderReview(m, review = DEFAULT_REVIEW) {
+/**
+ * The report and the exit code: total minutes, one line per share, the thresholds, then the findings; 1 on any error.
+ * enforce 'warn' reports each error as a warning; 'error' keeps each severity.
+ */
+export function renderReview(m, review = DEFAULT_REVIEW, enforce = 'error') {
   const w = review.weights;
   const { minutes, shares } = estimate({ ...m, parts: m.parts.length }, w);
-  const findings = gate(m, minutes, review);
+  const findings = enforced(gate(m, minutes, review), enforce);
   const row = (name, calc, value, extra = '') => `  ${name.padEnd(12)} ${calc} = ${num(value)} min${extra}`;
   const text = [
     `review-time: ${minutes} minutes against ${m.base}`,

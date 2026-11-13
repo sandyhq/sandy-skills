@@ -47,9 +47,9 @@ Upgrade the package, then run `sandy-skills update` and commit the diff. It repl
 
 ## 5. Upgrade to 0.7 from 0.4 or older
 
-Upgrade the package and run `sandy-skills update` (section 4). These findings are new errors, so `check` and CI fail until you fix them ([changelog](https://github.com/sandyhq/sandy-skills/blob/main/CHANGELOG.md)):
+Upgrade the package and run `sandy-skills update` (section 4). Since 0.7.1 these findings are warnings, so CI stays green; with `sandy-skills.enforce: error` they are errors and block, as in 0.7.0 ([changelog](https://github.com/sandyhq/sandy-skills/blob/main/CHANGELOG.md), [warnings or errors](usage.md#warnings-or-errors)):
 
-| Finding | Since | Blocks |
+| Finding | Since | Reports |
 |---|---|---|
 | `over-limit` | 0.5 | an open change over 750 words, a file over its limit, or more than 7 claims |
 | `vague-word` | 0.5 | a word such as `should`, `may` or `etc` in an open change |
@@ -67,10 +67,11 @@ Fix them in this order:
 4. Give each seam its Relation line, with 1 of the 7 values of the glossary.
 5. Extend the Code lines of the parts until each code file git tracks lies under exactly 1 part.
 6. Then add the `review-time` job to CI ([usage](usage.md#ci)).
+7. Set `enforce: error` under `sandy-skills:` in `openspec/config.yaml` when the findings shall block.
 
 ## 6. What a repo needs besides init
 
 - Tests with a JUnit reporter that write into `reports/` ([JUnit reports](usage.md#junit-reports)).
-- A CI job that runs `sandy-skills validate --all --strict --junit reports/`, and on merge requests `sandy-skills review-time` ([CI](usage.md#ci)).
+- A CI job that runs `sandy-skills validate --all --strict --junit reports/`, and on merge requests `sandy-skills review-time` ([CI](usage.md#ci)). It blocks only with `sandy-skills.enforce: error`.
 - An `AGENTS.md` that names the checks to run before a commit and tells agents to work spec first ([repo structure](https://github.com/sandyhq/sandy-skills/blob/main/standards/repo-structure.md)).
 - The checks and release evidence of the [secure engineering baseline](https://github.com/sandyhq/sandy-skills/blob/main/standards/secure-engineering-baseline.md).

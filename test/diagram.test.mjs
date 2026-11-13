@@ -40,10 +40,11 @@ const block = (id, body) => `<!-- sandy-skills diagram: ${id} -->\n\`\`\`mermaid
 const STALE = 'flowchart LR\n  p_shop["Corner shop"]\n';
 
 /** A copy of the fixture repo with extra files {path: text}. */
+const ENFORCE = 'schema: proven\nsandy-skills:\n  enforce: error\n'; // the fixtures expect the 0.7.0 errors
 function repo(files = {}) {
   const root = mkdtempSync(join(tmpdir(), 'sandy-skills-diagram-'));
   cpSync(FIXTURE, root, { recursive: true });
-  for (const [path, text] of Object.entries(files)) { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text); }
+  for (const [path, text] of Object.entries({ 'openspec/config.yaml': ENFORCE, ...files })) { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text); }
   return root;
 }
 const run = (root, ...args) => spawnSync(process.execPath, [BIN, ...args, '--root', root], { encoding: 'utf8' });

@@ -8,7 +8,7 @@ import { parseJUnit } from '../src/junit.mjs';
 import { check } from '../src/check.mjs';
 import { renderMarkdown } from '../src/report.mjs';
 import { loadSpec, loadSpecs, passOpenspec, readConfig, readOpenChanges, readOpenTasks, runOpenspec } from '../src/openspec.mjs';
-import { readLimits, readReview } from '../src/limits.mjs';
+import { readEnforce, readLimits, readReview } from '../src/limits.mjs';
 import { readGlossary } from '../src/glossary.mjs';
 import { readSpecFiles } from '../src/scenarios.mjs';
 import { measureDiff, renderReview } from '../src/review.mjs';
@@ -80,8 +80,10 @@ function runCheck(root, opts, today) {
   const specs = opts.specs ? JSON.parse(readFileSync(opts.specs, 'utf8')) : loadSpecs(root);
   const tests = opts.junit.flatMap(xmlFiles).flatMap((f) => parseJUnit(readFileSync(f, 'utf8')));
   const changes = readOpenChanges(root);
-  const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root), changes, limits: readLimits(readConfig(root)), review: readReview(readConfig(root)), specFiles: readSpecFiles(root, changes), glossary: readGlossary(root) });
-  if (opts.strict && result.summary.warnings > 0) result.summary.releasable = false;
+  const enforce = readEnforce(readConfig(root));
+  const result = check(specs.map(parsePart), tests, { today, openTasks: readOpenTasks(root), diagrams: repoBlocks(root), changes, limits: readLimits(readConfig(root)), review: readReview(readConfig(root)), specFiles: readSpecFiles(root, changes), glossary: readGlossary(root), enforce });
+  // --strict fails on warnings only where errors block: under enforce warn, no finding of check fails.
+  if (opts.strict && enforce === 'error' && result.summary.warnings > 0) result.summary.releasable = false;
   const text = (opts.format ?? 'md') === 'json' ? JSON.stringify(result, null, 2) + '\n' : renderMarkdown(result) + '\n';
   if (opts.out) { mkdirSync(dirname(resolve(opts.out)), { recursive: true }); writeFileSync(opts.out, text); }
   else process.stdout.write(text);
@@ -136,7 +138,7 @@ async function main(argv) {
   if (command === 'check') return runCheck(root, opts, today);
   if (command === 'review-time') {
     if (!opts.base) { console.error('review-time needs --base <ref>'); return 2; }
-    const { text, code } = renderReview(measureDiff(root, opts.base), readReview(readConfig(root)));
+    const { text, code } = renderReview(measureDiff(root, opts.base), readReview(readConfig(root)), readEnforce(readConfig(root)));
     process.stdout.write(text);
     return code;
   }

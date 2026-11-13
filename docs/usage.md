@@ -30,14 +30,25 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 |---|---|
 | `init [--tools LIST] [--skills-dir DIR]` | Sets up OpenSpec if missing, installs the schema as default and the skills |
 | `update [--skills-dir DIR]` | Installs schema and skills again from the installed version |
-| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes, open changes with a long estimated review (`long-review`, no code lines counted), scenarios not shaped GIVEN, WHEN, THEN, TEST, words from a Not line of the glossary in specs and open changes (`wrong-term`; the package's `standards/glossary.md` plus the repo's `docs/glossary.md`, whose words are never wrong), seams without a valid `Relation:` line (`missing-relation`, `bad-relation`), and the releasability report; exit 1 if not releasable |
+| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes, open changes with a long estimated review (`long-review`, no code lines counted), scenarios not shaped GIVEN, WHEN, THEN, TEST, words from a Not line of the glossary in specs and open changes (`wrong-term`; the package's `standards/glossary.md` plus the repo's `docs/glossary.md`, whose words are never wrong), seams without a valid `Relation:` line (`missing-relation`, `bad-relation`), and the releasability report; exit 1 if not releasable, which only an error makes: each finding is a warning unless `enforce: error` |
 | `validate [<openspec validate args>] [--junit FILE\|DIR] [--out FILE] [--strict]` | `openspec validate` with the other arguments, then `check` with `--junit`, `--out` and `--strict` (`--strict` goes to both); prints both, non-zero if either fails |
 | `diagram [<id>] [--write]` | A Mermaid flowchart of every part, or of one part, what is below it and its neighbours; `--write` refreshes every marked block in the repo's Markdown ([diagrams](https://github.com/sandyhq/sandy-skills/blob/main/standards/diagrams.md)) |
-| `review-time --base <ref>` | The estimated review minutes of the diff against the merge base of `<ref>` and HEAD, and each share: change words / 170, code lines / 8 (no tests, Markdown, `openspec/`, lock or generated files), 5 per part, 8 per seam, 2 per claim. Warns above 30 minutes or 200 code lines; exit 1 above 60 minutes or 400 code lines, for a code file no part owns, and for 0 or 2 or more changes or code in a part without a delta spec in the change |
+| `review-time --base <ref>` | The estimated review minutes of the diff against the merge base of `<ref>` and HEAD, and each share: change words / 170, code lines / 8 (no tests, Markdown, `openspec/`, lock or generated files), 5 per part, 8 per seam, 2 per claim. Warns above 30 minutes or 200 code lines; with `enforce: error`, exit 1 above 60 minutes or 400 code lines, for a code file no part owns, and for 0 or 2 or more changes or code in a part without a delta spec in the change |
 | `hash <id>` | The contract hash of a part |
 | `confirm <id> <I\|We\|They> <who> [--days N]` | The CONFIRMED line, valid at most 90 days; I needs a passed exam |
 | `openspec <args>` | OpenSpec with exactly these arguments: its own `init`, `update` and `--help`, whose names sandy-skills takes |
 | any other command | Goes to OpenSpec unchanged, with its input, output and exit code: `list`, `show`, `new change`, `status`, `instructions`, `archive`, … |
+
+## Warnings or errors
+
+All findings are warnings by default; set `enforce: error` to block. Under the default `warn`, `check`, `validate` and `review-time` show each finding as a warning and exit 0 for it, also with `--strict`. Under `error`, each finding has its own severity and an error exits 1, as in 0.7.0. The errors of OpenSpec's own validation fail `validate` either way.
+
+```yaml
+sandy-skills:
+  enforce: error   # default: warn
+```
+
+## Weights and thresholds
 
 `review-time` and `check` read their weights and thresholds from `openspec/config.yaml`; each missing key keeps its default:
 

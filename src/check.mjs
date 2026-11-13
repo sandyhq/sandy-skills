@@ -1,7 +1,7 @@
 // Lights and drift for a set of parts, from test results and human confirmations. Pure: no I/O, no clock.
 import { normalize, SIDES } from './parts.mjs';
 import { diagramFindings } from './diagram.mjs';
-import { changeFindings, DEFAULT_REVIEW, readLimits } from './limits.mjs';
+import { changeFindings, DEFAULT_REVIEW, readLimits, enforced } from './limits.mjs';
 import { changeReview } from './review.mjs';
 import { standardGlossary, wrongTermFindings } from './glossary.mjs';
 import { scenarioFindings } from './scenarios.mjs';
@@ -72,7 +72,7 @@ function relationFinding(part, seam, values, add) {
 /** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
 const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);
 
-export function check(parts, tests, { today, openTasks = '', diagrams = [], changes = [], limits = readLimits(''), review = DEFAULT_REVIEW, specFiles = [], glossary = standardGlossary() }) {
+export function check(parts, tests, { today, openTasks = '', diagrams = [], changes = [], limits = readLimits(''), review = DEFAULT_REVIEW, specFiles = [], glossary = standardGlossary(), enforce = 'error' }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today ?? '')) throw new Error('today must be yyyy-mm-dd');
   const findings = [];
   const add = (part, kind, severity, detail, requirement) =>
@@ -198,7 +198,9 @@ export function check(parts, tests, { today, openTasks = '', diagrams = [], chan
     r.light = r.drift.length ? 'drift' : weakest(Object.values(r.sides));
   }
 
-  const errors = findings.filter((f) => f.severity === 'error').length;
-  const warnings = findings.filter((f) => f.severity === 'warning').length;
-  return { today, summary: { parts: results.length, errors, warnings, releasable: errors === 0 }, parts: results, findings };
+  // enforce 'warn' (the CLI's default) reports each error as a warning; 'error' keeps each severity.
+  const shown = enforced(findings, enforce);
+  const errors = shown.filter((f) => f.severity === 'error').length;
+  const warnings = shown.filter((f) => f.severity === 'warning').length;
+  return { today, summary: { parts: results.length, errors, warnings, releasable: errors === 0 }, parts: results, findings: shown };
 }

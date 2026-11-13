@@ -2,6 +2,10 @@
 
 What each version newly blocks, then what else changed. Upgrading from 0.4 or older: [getting started](docs/getting-started.md#5-upgrade-to-07-from-04-or-older).
 
+## 0.7.1
+
+Blocks less: every finding of `check`, `validate` and `review-time` is a warning by default, and each exits 0 for warnings, also with `--strict`. `sandy-skills.enforce: error` in `openspec/config.yaml` blocks as 0.7.0 did; set it to keep the rules below. The errors of OpenSpec's own validation still fail `validate`.
+
 ## 0.7.0
 
 Blocks newly, as errors of `check` in specs and open changes:

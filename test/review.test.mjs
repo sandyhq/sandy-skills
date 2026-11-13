@@ -14,11 +14,13 @@ import { TODAY } from './helpers.mjs';
 const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
 const git = (root, ...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd: root, encoding: 'utf8' });
 const put = (root, files) => { for (const [p, text] of Object.entries(files)) { mkdirSync(dirname(join(root, p)), { recursive: true }); writeFileSync(join(root, p), text); } };
+const ENFORCE = 'schema: proven\nsandy-skills:\n  enforce: error\n'; // the fixtures expect the 0.7.0 errors
 /** A git repo whose first commit holds base and whose working tree adds head; returns the root. */
 function repo(base, head) {
   const root = mkdtempSync(join(tmpdir(), 'sandy-skills-review-'));
   git(root, 'init', '-q', '-b', 'main');
-  put(root, { 'README.md': 'r\n', ...base });
+  const config = 'openspec/config.yaml' in base || 'openspec/config.yaml' in head ? {} : { 'openspec/config.yaml': ENFORCE };
+  put(root, { 'README.md': 'r\n', ...config, ...base });
   git(root, 'add', '-A'); git(root, 'commit', '-q', '-m', 'base');
   put(root, head);
   git(root, 'add', '-A');
@@ -121,7 +123,7 @@ test("review-time SHALL exit 1 when the diff holds 0 changes or 2 or more change
 });
 
 test("review-time SHALL read weights, minute thresholds and line thresholds from sandy-skills.review in openspec/config.yaml and keep the default for each missing key.", () => {
-  const config = 'schema: proven\nsandy-skills:\n  limits:\n    total: { warn: 600, error: 900 }\n  review:\n    weights:\n      seam: 12\n';
+  const config = 'schema: proven\nsandy-skills:\n  enforce: error\n  limits:\n    total: { warn: 600, error: 900 }\n  review:\n    weights:\n      seam: 12\n';
   assert.deepEqual(readReview(config), { ...DEFAULT_REVIEW, weights: { ...DEFAULT_REVIEW.weights, seam: 12 } });
   assert.deepEqual(readReview('sandy-skills:\n  review:\n    minutes: { error: 90 }\n    lines: { warn: 100, error: 150 }\n    weights: { wordsPerMinute: 200, part: 4.5 }\n'),
     { target: 20, minutes: { warn: 30, error: 90 }, lines: { warn: 100, error: 150 }, weights: { wordsPerMinute: 200, linesPerMinute: 8, part: 4.5, seam: 8, claim: 2 } });
@@ -137,7 +139,7 @@ test("review-time SHALL read weights, minute thresholds and line thresholds from
   assert.match(r.stdout, /^  code lines +0 \/ 8 = 0 min$/m);
   assert.match(r.stdout, /^  parts +1 × 5 = 5 min \(a\)$/m);
   assert.match(r.stdout, /^  claims +0 × 2 = 0 min$/m);
-  const tight = repo({ ...part('a', 'src/'), 'openspec/config.yaml': 'sandy-skills:\n  review:\n    minutes: { warn: 3, error: 4 }\n    lines: { warn: 1, error: 2 }\n' }, { ...seamChange(0), 'src/a.mjs': lines(3) });
+  const tight = repo({ ...part('a', 'src/'), 'openspec/config.yaml': 'sandy-skills:\n  enforce: error\n  review:\n    minutes: { warn: 3, error: 4 }\n    lines: { warn: 1, error: 2 }\n' }, { ...seamChange(0), 'src/a.mjs': lines(3) });
   const s = reviewTime(tight);
   assert.match(s.stdout, /^target 20 minutes, warn above 3, error above 4$/m);
   assert.deepEqual(errors(s.stdout).map(([k]) => k), ['long-review', 'many-lines']);
@@ -156,7 +158,7 @@ test("check SHALL estimate the review minutes of each open change from its words
   assert.deepEqual(review(change(['X'])).findings.filter((x) => x.kind === 'long-review'), []);
   const own = review(change(['X']), { ...DEFAULT_REVIEW, minutes: { warn: 1, error: 3 } }).findings.filter((x) => x.kind === 'long-review');
   assert.deepEqual(own.map((x) => [x.severity, x.threshold]), [['error', 3]], 'the configured thresholds');
-  const root = repo(part('a', 'src/'), { 'openspec/config.yaml': 'sandy-skills:\n  review:\n    minutes: { warn: 1, error: 2 }\n', 'openspec/changes/c/specs/a/spec.md': delta('X') });
+  const root = repo(part('a', 'src/'), { 'openspec/config.yaml': 'sandy-skills:\n  enforce: error\n  review:\n    minutes: { warn: 1, error: 2 }\n', 'openspec/changes/c/specs/a/spec.md': delta('X') });
   writeFileSync(join(root, 'specs.json'), '[]');
   const r = spawnSync(process.execPath, [BIN, 'check', '--root', root, '--specs', join(root, 'specs.json'), '--today', TODAY, '--format', 'json'], { encoding: 'utf8' });
   assert.equal(r.status, 1, r.stderr);
@@ -178,4 +180,24 @@ test("review-time SHALL count Go files ending in _test.go and Python files named
   const r = reviewTime(repo(part('service', 'src/'), { 'openspec/changes/c/specs/service/spec.md': delta('X'), 'src/a.go': lines(3), 'src/contest.py': lines(2), 'src/a_test.go': lines(400), 'src/test_a.py': lines(50), 'src/a_test.py': lines(60) }));
   assert.match(r.stdout, /^  code lines +5 \/ 8 = /m, r.stdout);
   assert.equal(r.status, 0, r.stdout);
+});
+
+test("review-time SHALL report each finding as a warning and exit 0 for it unless openspec/config.yaml sets sandy-skills.enforce: error, which keeps each severity and exits 1 for an error.", () => {
+  const head = { 'openspec/changes/c1/specs/z/spec.md': delta('X'), 'openspec/changes/c2/proposal.md': 'p\n', 'src/a.mjs': lines(500), 'lib/x.mjs': 'x\n' };
+  const kinds = ['long-review', 'many-lines', 'unowned-file', 'many-changes', 'no-delta-spec'];
+  const at = (out, severity) => [...out.matchAll(/^(error|warning) ([a-z-]+):/gm)].filter((m) => m[1] === severity).map((m) => m[2]);
+  for (const config of [{ 'openspec/config.yaml': 'schema: proven\n' }, { 'openspec/config.yaml': 'sandy-skills:\n  enforce: warn\n' }]) {
+    const r = reviewTime(repo({ ...part('a', 'src/'), ...config }, head));
+    assert.equal(r.status, 0, r.stdout);
+    assert.deepEqual(at(r.stdout, 'warning'), kinds);
+    assert.deepEqual(at(r.stdout, 'error'), []);
+    const none = reviewTime(repo({ ...part('a', 'src/'), ...config }, { 'src/a.mjs': 'a\n' }));
+    assert.equal(none.status, 0);
+    assert.deepEqual(at(none.stdout, 'warning'), ['no-change']);
+  }
+  const enforce = { 'openspec/config.yaml': 'sandy-skills:\n  enforce: error\n' };
+  const r = reviewTime(repo({ ...part('a', 'src/'), ...enforce }, head));
+  assert.equal(r.status, 1);
+  assert.deepEqual(at(r.stdout, 'error'), kinds);
+  assert.equal(reviewTime(repo({ ...part('a', 'src/'), ...enforce }, { 'src/a.mjs': 'a\n' })).status, 1);
 });

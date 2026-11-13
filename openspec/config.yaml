@@ -1,5 +1,9 @@
 schema: proven
 
+# This repo keeps the 0.7.0 rules: every finding of check, validate and review-time with its own severity.
+sandy-skills:
+  enforce: error
+
 # Project context (optional)
 # Add only constraints that should guide OpenSpec artifacts and workflows.
 # Include constraints an agent cannot infer by reading the code.

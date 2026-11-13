@@ -120,6 +120,27 @@ function section(configText, name) {
   return { body, keyIndent: keyLine ? indent(keyLine) : 0 };
 }
 
+/**
+ * sandy-skills.enforce from the text of openspec/config.yaml: 'warn' (the default) makes every finding of check and
+ * review-time a warning; 'error' keeps each severity.
+ */
+export function readEnforce(configText) {
+  const lines = String(configText ?? '').replace(/\r\n?/g, '\n').split('\n').map((t, i) => ({ t, n: i + 1 }));
+  const top = lines.findIndex((l) => /^sandy-skills:/.test(l.t));
+  if (top < 0) return 'warn';
+  if (!/^sandy-skills:\s*(#.*)?$/.test(lines[top].t)) throw fail(lines[top], 'write sandy-skills: as a block, one key per line');
+  const inner = block(lines, top).map(uncomment);
+  const first = inner.find((l) => !blank(l));
+  const at = first && inner.find((l) => indent(l) === indent(first) && /^\s+enforce:/.test(l.t));
+  if (!at) return 'warn';
+  const value = scalar(at.t.replace(/^\s+enforce:/, ''), at);
+  if (value !== 'warn' && value !== 'error') throw fail(at, `sandy-skills.enforce: "${value}" is neither warn nor error`);
+  return value;
+}
+
+/** The findings as enforce wants them: under 'warn' each error becomes a warning; under 'error' they stay. */
+export const enforced = (findings, enforce) => (enforce === 'warn' ? findings.map((f) => (f.severity === 'error' ? { ...f, severity: 'warning' } : f)) : findings);
+
 export function readLimits(configText) {
   const limits = Object.fromEntries(MEASURES.map((k) => [k, { ...DEFAULT_LIMITS[k] }]));
   limits.vagueWords = [...DEFAULT_VAGUE_WORDS];
