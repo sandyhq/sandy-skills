@@ -80,6 +80,23 @@ function specHeading(root, id) {
   return line ? line.replace(/^#\s+/, '').trim() : null;
 }
 
+const walk = (dir, rel = '') => readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1)).flatMap((d) =>
+  d.isDirectory() ? walk(join(dir, d.name), rel + d.name + '/') : d.isFile() ? [rel + d.name] : []);
+
+/**
+ * Every main spec file, at any depth below openspec/specs: its id is the folder path, as OpenSpec lists it
+ * (domain/service). The one list that check, the scenarios, the glossary and review-time read.
+ * @returns [{id, file: relative to root, text}], sorted by id
+ */
+export function mainSpecFiles(root) {
+  const base = join(root, 'openspec', 'specs');
+  if (!existsSync(base)) return [];
+  return walk(base).filter((f) => /\/spec\.md$/.test(f)).map((f) => {
+    const id = f.replace(/\/spec\.md$/, '');
+    return { id, file: `openspec/specs/${f}`, text: readFileSync(join(base, f), 'utf8') };
+  });
+}
+
 /** The text of openspec/config.yaml, or '' without one. */
 export function readConfig(root) {
   const file = join(root, 'openspec', 'config.yaml');

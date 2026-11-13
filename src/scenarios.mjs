@@ -1,7 +1,6 @@
 // Scenario shape: every scenario is GIVEN, WHEN, THEN, TEST in this order, with AND lines after GIVEN, WHEN or THEN.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { proseLines } from './limits.mjs';
+import { mainSpecFiles } from './openspec.mjs';
 
 const SCENARIO = /^####\s+Scenario:\s*(.*)$/;
 const HEADING = /^#{1,6}\s/;
@@ -9,16 +8,12 @@ const STEP = /^\s*-\s+\*\*(GIVEN|WHEN|THEN|AND|TEST)\*\*/;
 const SHAPE = /^GIVEN( AND)* WHEN( AND)* THEN( AND)* TEST$/;
 
 /**
- * The spec files whose scenarios check reads: openspec/specs/<id>/spec.md and the delta specs of open changes,
+ * The spec files whose scenarios and words check reads: every main spec at any depth and the delta specs of open changes,
  * never openspec/changes/archive/.
  * @returns [{part, file: relative to root, text}]
  */
 export function readSpecFiles(root, changes) {
-  const base = join(root, 'openspec', 'specs');
-  const specs = existsSync(base)
-    ? readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory() && existsSync(join(base, d.name, 'spec.md'))).map((d) => d.name).sort()
-      .map((id) => ({ part: id, file: `openspec/specs/${id}/spec.md`, text: readFileSync(join(base, id, 'spec.md'), 'utf8') }))
-    : [];
+  const specs = mainSpecFiles(root).map(({ id, file, text }) => ({ part: id, file, text }));
   const deltas = changes.flatMap((c) => c.files.filter((f) => f.path.startsWith('specs/') && f.path.endsWith('.md')).map((f) => ({ part: c.id, file: `${c.dir}/${f.path}`, text: f.text })));
   return [...specs, ...deltas];
 }

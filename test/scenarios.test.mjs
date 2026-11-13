@@ -57,3 +57,15 @@ test("The checker SHALL check scenarios in openspec/specs and open changes, neve
   const found = JSON.parse(r.stdout).findings.filter((f) => f.kind === 'scenario-shape').map((f) => [f.file, f.line]);
   assert.deepEqual(found, [['openspec/specs/a/spec.md', 5], ['openspec/changes/new/specs/a/spec.md', 5]]);
 });
+
+test("check SHALL read the scenarios and the words of each spec below openspec/specs at any depth, with its folder path as the id, as OpenSpec lists it.", () => {
+  const root = mkdtempSync(join(tmpdir(), 'sandy-skills-nested-'));
+  const path = 'openspec/specs/parent/a/spec.md';
+  mkdirSync(dirname(join(root, path)), { recursive: true });
+  writeFileSync(join(root, path), specText(scenario('WHEN', 'THEN', 'TEST')) + 'A feature.\n');
+  writeFileSync(join(root, 'specs.json'), JSON.stringify([spec('parent/a')]));
+  const r = spawnSync(process.execPath, [BIN, 'check', '--root', root, '--specs', join(root, 'specs.json'), '--today', TODAY, '--format', 'json'], { encoding: 'utf8' });
+  assert.equal(r.stderr, '');
+  const found = JSON.parse(r.stdout).findings.filter((f) => f.file).map((f) => [f.kind, f.part, f.file, f.line]);
+  assert.deepEqual(found, [['scenario-shape', 'parent/a', path, 5], ['wrong-term', 'parent/a', path, 9]]);
+});

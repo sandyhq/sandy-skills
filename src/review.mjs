@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { countWords, DEFAULT_REVIEW, DEFAULT_WEIGHTS, proseLines } from './limits.mjs';
+import { mainSpecFiles } from './openspec.mjs';
 
 export { DEFAULT_REVIEW, DEFAULT_WEIGHTS, readReview } from './limits.mjs';
 
@@ -91,11 +92,8 @@ export function measureDiff(root, base) {
     }
   }
   const parts = [];
-  const specs = join(root, 'openspec', 'specs');
   // A spec at any depth is a part; its id is the folder path below openspec/specs, as OpenSpec lists it (domain/service).
-  if (existsSync(specs)) for (const f of walk(specs).filter((x) => /(^|\/)spec\.md$/.test(x) && x !== 'spec.md')) {
-    parts.push({ id: f.replace(/\/spec\.md$/, ''), code: codePaths(readFileSync(join(specs, f), 'utf8')) ?? [] });
-  }
+  for (const { id, text } of mainSpecFiles(root)) parts.push({ id, code: codePaths(text) ?? [] });
   for (const d of deltas) { const code = codePaths(d.text); if (code && !parts.some((p) => p.id === d.id)) parts.push({ id: d.id, code }); }
   const code = numstat.filter((f) => isCode(f.path, generated)).map((f) => ({ ...f, owners: owners(f.path, parts) }));
   const touched = new Set([...code.flatMap((f) => f.owners), ...deltas.map((d) => d.id)]);
