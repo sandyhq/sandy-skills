@@ -63,6 +63,7 @@ function lightOf(test) {
 function relationFinding(part, seam, values, add) {
   const r = seam.relation;
   if (!r) return add(part.id, 'missing-relation', 'error', `seam to "${seam.to}" has no line "Relation: <value> · Upstream: <id>"`, seam.name);
+  if (r.count > 1) return add(part.id, 'bad-relation', 'error', `the seam has ${r.count} Relation lines; write 1 "Relation: <value> · Upstream: <id>"`, seam.name);
   if (r.malformed) return add(part.id, 'bad-relation', 'error', 'the Relation line is not "Relation: <value> · Upstream: <id>"', seam.name);
   if (!values.includes(r.value)) add(part.id, 'bad-relation', 'error', `Relation: ${r.value} is not 1 of the ${values.length} values of the glossary: ${values.join(', ')}`, seam.name);
   if (r.upstream !== part.id && r.upstream !== seam.to) add(part.id, 'bad-relation', 'error', `Upstream: ${r.upstream} is neither ${part.id} nor ${seam.to}`, seam.name);

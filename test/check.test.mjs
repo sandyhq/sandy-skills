@@ -114,6 +114,15 @@ test("When a spec has no metadata line, Contract, seam, TEST or CONFIRMED line, 
 const relation = (line) => [spec('init'), spec('diagram'), spec('cli', { requirements: [['Seam to init', `The cli SHALL install the schema with init.${line === null ? '' : '\n' + line}`]] })];
 const relationFindings = (r) => r.findings.filter((f) => /relation/.test(f.kind)).map(({ part, kind, severity, requirement, detail }) => ({ part, kind, severity, requirement, detail }));
 
+test("check SHALL report bad-relation as an error when a seam has 2 or more Relation lines, and SHALL keep each Relation line out of the claim sentence.", () => {
+  const two = relation('Relation: conformist · Upstream: init\nRelation: friendship · Upstream: c');
+  const r = run(two);
+  assert.deepEqual(relationFindings(r), [{ part: 'cli', kind: 'bad-relation', severity: 'error', requirement: 'Seam to init', detail: 'the seam has 2 Relation lines; write 1 "Relation: <value> · Upstream: <id>"' }]);
+  assert.equal(r.summary.releasable, false);
+  assert.equal(parsePart(two[2]).seams[0].text, 'The cli SHALL install the schema with init.');
+  assert.deepEqual(relationFindings(run(relation('Relation: conformist · Upstream: init\nRelation: conformist · Upstream: init'))).map((f) => f.kind), ['bad-relation']);
+});
+
 test("check SHALL report bad-relation as an error when a Relation line names a value outside the 7 values of the glossary or an upstream that is neither part of its seam.", () => {
   assert.deepEqual(relationFindings(run(relation('Relation: conformist · Upstream: init'))), []);
   assert.deepEqual(relationFindings(run(relation('Relation: conformist · Upstream: cli'))), []);
