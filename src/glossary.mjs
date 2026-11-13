@@ -66,17 +66,61 @@ const termRe = (term) => {
   return new RegExp(`(?<![\\p{L}\\p{N}_])${[...words, `(?:${forms.join('|')})`].join('\\s+')}(?![\\p{L}\\p{N}_])`, 'iu');
 };
 
+const LIST = /^\s{0,3}([-*+]|\d{1,9}[.)])(\s|$)/;
+const ATX = /^\s{0,3}#{1,6}(\s|$)/;
+const SETEXT = /^\s{0,3}(=+|-+)\s*$/;
+const indentOf = (line) => { let n = 0; for (const c of line) { if (c === ' ') n++; else if (c === '\t') n += 4 - (n % 4); else break; } return n; };
+const spaces = (s) => s.replace(/[^\n]/g, ' ');
+/** A line without the addresses of links, images, autolinks, URLs and reference definitions; link labels stay. */
+const visible = (line) => line
+  .replace(/^(\s{0,3}\[[^\]]+\]:)(.*)$/, (_, label, rest) => label + spaces(rest))
+  .replace(/\]\((?:[^()\s]|\([^()]*\))*(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/g, (m) => ']' + spaces(m.slice(1)))
+  .replace(/\]\[[^\]]*\]/g, (m) => ']' + spaces(m.slice(1)))
+  .replace(/<[a-z][a-z0-9+.-]{1,31}:[^\s<>]*>/gi, spaces)
+  .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s<>()]+|\bwww\.[^\s<>()]+/gi, spaces);
+
 /**
- * Errors wrong-term for the specs and the Markdown files of open changes: each Not term outside fenced code, HTML
- * comments and backticks, and outside headings for a term marked except headings.
+ * The prose of a Markdown text, 1 entry per line, line numbers kept: fenced and indented code, HTML comments, code
+ * spans and addresses blanked. heading: the line belongs to an ATX or a setext heading.
+ * @returns [{text, heading}]
+ */
+export function proseOf(text) {
+  const lines = blankCodeSpans(proseLines(String(text ?? '').replace(/\r\n?/g, '\n')).join('\n')).split('\n');
+  const out = [];
+  let para = [];
+  let inList = false;
+  let inCode = false;
+  let afterBlank = true;
+  for (const line of lines) {
+    if (line.trim() === '') { out.push({ text: '', heading: false }); para = []; afterBlank = true; continue; }
+    const indent = indentOf(line);
+    if (indent >= 4 && !para.length && !inList && (afterBlank || inCode)) { out.push({ text: '', heading: false }); inCode = true; afterBlank = false; continue; }
+    inCode = false;
+    if (LIST.test(line)) inList = true; else if (afterBlank && indent === 0) inList = false;
+    afterBlank = false;
+    if (ATX.test(line)) { out.push({ text: visible(line), heading: true }); para = []; continue; }
+    if (SETEXT.test(line) && para.length) {
+      if (!para.some((i) => LIST.test(lines[i]))) for (const i of para) out[i].heading = true;
+      out.push({ text: '', heading: false });
+      para = [];
+      continue;
+    }
+    para.push(out.length);
+    out.push({ text: visible(line), heading: false });
+  }
+  return out;
+}
+
+/**
+ * Errors wrong-term for the specs and the Markdown files of open changes: each Not term in the prose (proseOf), and
+ * outside headings for a term marked except headings.
  * @param files [{part, file, text}]
  */
 export function wrongTermFindings(files, glossary = standardGlossary()) {
   const res = glossary.nots.map((n) => ({ ...n, re: termRe(n.term) }));
   const findings = [];
   for (const { part, file, text } of files) {
-    blankCodeSpans(proseLines(text).join('\n')).split('\n').forEach((line, i) => {
-      const heading = /^\s{0,3}#{1,6}\s/.test(line);
+    proseOf(text).forEach(({ text: line, heading }, i) => {
       for (const n of res) {
         if ((heading && n.exceptHeadings) || !n.re.test(line)) continue;
         findings.push({ part, kind: 'wrong-term', severity: 'error', file, line: i + 1, word: n.term, glossaryWord: n.word, detail: `${file}:${i + 1}: "${n.term}" is not a glossary word; write "${n.word}"` });

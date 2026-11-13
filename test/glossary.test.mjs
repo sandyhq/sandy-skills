@@ -68,3 +68,17 @@ test("check SHALL read standards/glossary.md from the installed package and docs
   assert.deepEqual(wrong(run()).map((f) => [f.file, f.word, f.glossaryWord]), [['openspec/specs/a/spec.md', 'module', 'part'], ['openspec/specs/b/spec.md', 'purchase', 'order']]);
   assert.deepEqual(readGlossary(root).nots.map((n) => n.term).filter((t) => t === 'PR'), []);
 });
+
+test("check SHALL read for wrong-term only the prose of Markdown, never indented code or the address of a link, image or URL, while a link label counts as prose and a setext heading as a heading.", () => {
+  const text = [
+    'Example:', '', '    import module from "module";', '', // 1-4: indented code
+    'See [guide](https://example.org/module/feature.md "story") and ![logo](img/story.png).', // 5: addresses
+    'Mail <https://example.org/module> or https://example.org/feature or www.example.org/story.', // 6: URLs
+    '[notes]: docs/story.md', // 7: reference definition
+    'Read [module](https://example.org/guide) and [guide][feature].', // 8: label counts, reference id does not
+    'Requirement', '-----------', 'Body.', // 9-11: setext heading
+    '- a list item', '', '    with a module in its second paragraph', // 12-14: list text, not code
+  ].join('\n');
+  const r = check([], [], { today: TODAY, specFiles: [{ part: 'a', file: 'openspec/specs/a/spec.md', text }] });
+  assert.deepEqual(wrong(r).map((f) => [f.line, f.word]), [[8, 'module'], [14, 'module']]);
+});
