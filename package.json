@@ -9,7 +9,7 @@
   "license": "MIT",
   "type": "module",
   "bin": { "sandy-skills": "bin/sandy-skills.mjs" },
-  "files": ["bin/", "src/", "skills/", "openspec/schemas/proven/", "standards/"],
+  "files": ["bin/", "src/", "skills/", "openspec/schemas/proven/", "standards/", "CHANGELOG.md"],
   "engines": { "node": ">=22.12" },
   "publishConfig": { "access": "public" },
   "dependencies": { "@fission-ai/openspec": "^2.0.0" },

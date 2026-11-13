@@ -26,13 +26,13 @@ Only standards/sources.md SHALL name the projects listed under its heading Conce
 - **TEST** `test/repo.test.mjs::Only standards/sources.md SHALL name the projects listed under its heading Concepts adopted without their tools.`
 
 ### Requirement: Package
-The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.
+The npm package SHALL contain the CLI, the proven schema, the skills, the standards and CHANGELOG.md, and no tests.
 
 #### Scenario: Package
 - **GIVEN** the repository
 - **WHEN** the package is packed
-- **THEN** it holds bin/, src/, skills/, the schema and standards/, and no test files
-- **TEST** `test/repo.test.mjs::The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.`
+- **THEN** it holds bin/, src/, skills/, the schema, standards/ and CHANGELOG.md, and no test files
+- **TEST** `test/repo.test.mjs::The npm package SHALL contain the CLI, the proven schema, the skills, the standards and CHANGELOG.md, and no tests.`
 
 ### Requirement: One owner per file
 Each code file that git tracks in this repository SHALL lie under the Code paths of exactly 1 part.

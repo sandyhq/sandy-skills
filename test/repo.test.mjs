@@ -78,11 +78,11 @@ test("Only standards/sources.md SHALL name the projects listed under its heading
   assert.deepEqual(hits, []);
 });
 
-test("The npm package SHALL contain the CLI, the proven schema, the skills and the standards, and no tests.", () => {
+test("The npm package SHALL contain the CLI, the proven schema, the skills, the standards and CHANGELOG.md, and no tests.", () => {
   const r = spawnSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   const files = JSON.parse(r.stdout)[0].files.map((f) => f.path);
-  for (const p of ['bin/sandy-skills.mjs', 'src/install.mjs', 'openspec/schemas/proven/schema.yaml', 'standards/spec-format.md', 'README.md', 'LICENSE', ...skills.map((s) => `skills/${s}/SKILL.md`)]) assert.ok(files.includes(p), p);
+  for (const p of ['bin/sandy-skills.mjs', 'src/install.mjs', 'openspec/schemas/proven/schema.yaml', 'standards/spec-format.md', 'README.md', 'CHANGELOG.md', 'LICENSE', ...skills.map((s) => `skills/${s}/SKILL.md`)]) assert.ok(files.includes(p), p);
   assert.deepEqual(files.filter((p) => /(^|\/)test\//.test(p) || p.startsWith('openspec/specs/') || p.startsWith('.')), []);
 });
 

@@ -15,6 +15,7 @@ for pm in "${@:-npm pnpm bun}"; do
       bun)  echo '{"name":"smoke","private":true}' > package.json; bun add --silent --dev "$tgz"; run=(bunx sandy-skills) ;;
     esac
     "${run[@]}" --version
+    test -f node_modules/@sandyhq/sandy-skills/CHANGELOG.md
     "${run[@]}" init --tools pi,claude > init.log
     grep -q '^schema: proven' openspec/config.yaml
     test -f .agents/skills/spec-first/SKILL.md

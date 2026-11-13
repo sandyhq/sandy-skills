@@ -7,11 +7,14 @@ What each version newly blocks, then what else changed. Upgrading from 0.4 or ol
 Blocks newly, as errors of `check` in specs and open changes:
 
 - `wrong-term`: a word from a Not line of the [glossary](standards/glossary.md). The repo's `docs/glossary.md` adds its own words; a word it defines is never wrong.
-- `missing-relation`, `bad-relation`: a seam without the line `Relation: <value> · Upstream: <id>`, with a value outside the 7 of the glossary, or with an upstream that is neither part of the seam.
+- `missing-relation`, `bad-relation`: a seam without the line `Relation: <value> · Upstream: <id>`, with a value outside the 7 of the glossary, with an upstream that is neither part of the seam, or with 2 or more Relation lines.
+- `scenario-shape` and `wrong-term` also in specs in nested folders below `openspec/specs/`.
 
 Also:
 
+- `wrong-term` reads only prose: never fenced or indented code, the address of a link, image or URL; link labels count. It finds a term of 2 or more words across line wraps and emphasis. A word that `docs/glossary.md` defines, with up to 3 spaces before `##` or a closing `#`, also covers its plural and singular.
 - The diagram writes the relation of each seam on its arrow.
+- The package holds this changelog.
 - Findings and the report say claim and seam. The limits key `claims` sets the claims per change; `requirements` still works.
 - The spec template has a seam with its Relation line. The skills name the glossary, the Relation line, and in propose-change `review-time`.
 
