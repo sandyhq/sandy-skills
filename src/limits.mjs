@@ -12,6 +12,9 @@ export const DEFAULT_LIMITS = {
 };
 export const DEFAULT_VAGUE_WORDS = ['should', 'may', 'might', 'could', 'just', 'simply', 'probably', 'maybe', 'etc', 'various', 'appropriate', 'appropriately', 'as needed', 'if needed', 'and/or', 'tbd', 'some', 'several', 'soon', 'fast', 'quickly'];
 const MEASURES = Object.keys(DEFAULT_LIMITS);
+/** Owner (0.6.0): target 20 minutes (printed only), warn above 30, fail above 60; code lines warn above 200, fail above 400. */
+export const DEFAULT_WEIGHTS = { wordsPerMinute: 170, linesPerMinute: 8, part: 5, seam: 8, claim: 2 };
+export const DEFAULT_REVIEW = { target: 20, minutes: { warn: 30, error: 60 }, lines: { warn: 200, error: 400 }, weights: DEFAULT_WEIGHTS };
 /** Scenario keywords and SHALL are the spec's grammar, never a vague word, even when an override list names them. */
 const KEYWORDS = /\*\*(WHEN|THEN|AND|GIVEN|TEST)\*\*|\bSHALL\b/g;
 
@@ -70,17 +73,22 @@ function block(lines, at) {
 
 /** `{ warn: 1, error: 2 }` on the key's line, or `warn: 1` and `error: 2` on the lines below it. */
 function thresholds(raw, below, line, where) {
+  return fields(raw, below, line, where, /^(warn|error)$/, /^\d+$/, 'warn: <number> or error: <number>');
+}
+
+/** The name: value fields of a one-line {…} map or of the lines below the key; names match known, values match number. */
+function fields(raw, below, line, where, known, number, shape) {
   let pairs;
   if (raw.startsWith('{')) {
-    if (!raw.endsWith('}')) throw fail(line, `${where} must be { warn: <words>, error: <words> } on one line`);
+    if (!raw.endsWith('}')) throw fail(line, `${where} must be { ${shape} } on one line`);
     pairs = splitFlow(raw.slice(1, -1)).map((t) => [t, line]);
   } else if (raw === '') pairs = below.filter((l) => !blank(l)).map((l) => [l.t, l]);
-  else throw fail(line, `${where} must be { warn: <words>, error: <words> }`);
+  else throw fail(line, `${where} must be { ${shape} }`);
   const out = {};
   for (const [t, l] of pairs) {
-    const m = /^\s*(warn|error)\s*:\s*(.*)$/.exec(t);
-    const value = m && scalar(m[2], l);
-    if (!m || !/^\d+$/.test(value)) throw fail(l, `${where}: "${t.trim()}" is not warn: <number> or error: <number>`);
+    const m = /^\s*([A-Za-z]+)\s*:\s*(.*)$/.exec(t);
+    const value = m && known.test(m[1]) && scalar(m[2], l);
+    if (!m || !value || !number.test(value)) throw fail(l, `${where}: "${t.trim()}" is not ${shape}`);
     out[m[1]] = Number(value);
   }
   return out;
@@ -92,23 +100,30 @@ function thresholds(raw, below, line, where) {
  * `warn:`/`error:` lines, and `vagueWords` as a one-line `[a, "b, c"]` or `- a` lines. Any other YAML in it stops check
  * with the line number instead of being misread.
  */
-export function readLimits(configText) {
-  const limits = Object.fromEntries(MEASURES.map((k) => [k, { ...DEFAULT_LIMITS[k] }]));
-  limits.vagueWords = [...DEFAULT_VAGUE_WORDS];
+/** The block of the key name directly under sandy-skills: its lines without comments and their key indent; null without one. */
+function section(configText, name) {
   const lines = String(configText ?? '').replace(/\r\n?/g, '\n').split('\n').map((t, i) => ({ t, n: i + 1 }));
   const top = lines.findIndex((l) => /^sandy-skills:/.test(l.t));
-  if (top < 0) return limits;
+  if (top < 0) return null;
   if (!/^sandy-skills:\s*(#.*)?$/.test(lines[top].t)) throw fail(lines[top], 'write sandy-skills: as a block, one key per line');
   const inner = block(lines, top);
   const first = inner.find((l) => !blank(l) && !/^\s*#/.test(l.t));
-  if (!first) return limits;
+  if (!first) return null;
   const child = indent(first);
-  const at = inner.findIndex((l) => indent(l) === child && /^\s+limits:/.test(l.t));
-  if (at < 0) return limits;
-  if (!/^\s+limits:\s*(#.*)?$/.test(inner[at].t)) throw fail(inner[at], 'write limits: as a block, one key per line');
+  const at = inner.findIndex((l) => indent(l) === child && new RegExp(`^\\s+${name}:`).test(l.t));
+  if (at < 0) return null;
+  if (!new RegExp(`^\\s+${name}:\\s*(#.*)?$`).test(inner[at].t)) throw fail(inner[at], `write ${name}: as a block, one key per line`);
   const body = block(inner, at).map(uncomment);
   const keyLine = body.find((l) => !blank(l));
-  const keyIndent = keyLine ? indent(keyLine) : 0;
+  return { body, keyIndent: keyLine ? indent(keyLine) : 0 };
+}
+
+export function readLimits(configText) {
+  const limits = Object.fromEntries(MEASURES.map((k) => [k, { ...DEFAULT_LIMITS[k] }]));
+  limits.vagueWords = [...DEFAULT_VAGUE_WORDS];
+  const sec = section(configText, 'limits');
+  if (!sec) return limits;
+  const { body, keyIndent } = sec;
   for (let i = 0; i < body.length; i++) {
     if (blank(body[i])) continue;
     const m = /^\s*([A-Za-z]+):(?:\s+(.*))?$/.exec(body[i].t);
@@ -253,4 +268,38 @@ export function changeFindings(changes, limits = readLimits('')) {
     }
   }
   return findings;
+}
+
+/**
+ * The review settings from the text of openspec/config.yaml: `sandy-skills.review` with minutes and lines as
+ * { warn, error } and weights as { wordsPerMinute, linesPerMinute, part, seam, claim }; each missing key or field at
+ * its default. Same reader and rules as readLimits.
+ */
+export function readReview(configText) {
+  const review = { target: DEFAULT_REVIEW.target, minutes: { ...DEFAULT_REVIEW.minutes }, lines: { ...DEFAULT_REVIEW.lines }, weights: { ...DEFAULT_WEIGHTS } };
+  const sec = section(configText, 'review');
+  if (!sec) return review;
+  const { body, keyIndent } = sec;
+  for (let i = 0; i < body.length; i++) {
+    if (blank(body[i])) continue;
+    const m = /^\s*([A-Za-z]+):(?:\s+(.*))?$/.exec(body[i].t);
+    if (!m || indent(body[i]) !== keyIndent) throw fail(body[i], `cannot read "${body[i].t.trim()}" under sandy-skills.review`);
+    const [, key, raw = ''] = m;
+    const line = body[i];
+    const where = `sandy-skills.review.${key}`;
+    let j = i;
+    while (j + 1 < body.length && (blank(body[j + 1]) || indent(body[j + 1]) > keyIndent)) j++;
+    const below = body.slice(i + 1, j + 1);
+    i = j;
+    if (key === 'minutes' || key === 'lines') {
+      Object.assign(review[key], thresholds(raw.trim(), below, line, where));
+      if (review[key].warn > review[key].error) throw fail(line, `${where}: warn ${review[key].warn} is above error ${review[key].error}`);
+    } else if (key === 'weights') {
+      const names = Object.keys(DEFAULT_WEIGHTS);
+      const got = fields(raw.trim(), below, line, where, new RegExp(`^(${names.join('|')})$`), /^\d+(\.\d+)?$/, `<${names.join('|')}>: <number>`);
+      for (const k of ['wordsPerMinute', 'linesPerMinute']) if (got[k] === 0) throw fail(line, `${where}.${k} must be above 0`);
+      Object.assign(review.weights, got);
+    } else throw fail(line, `${where} is no review setting; known: minutes, lines, weights`);
+  }
+  return review;
 }

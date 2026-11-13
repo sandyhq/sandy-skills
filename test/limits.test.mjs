@@ -14,7 +14,8 @@ const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
 const words = (n) => Array.from({ length: n }, (_, i) => 'w' + i).join(' ');
 const change = (files, id = 'a') => ({ id, dir: 'openspec/changes/' + id, files: Object.entries(files).map(([path, text]) => ({ path, text })) });
 const run = (changes, limits = readLimits('')) => check([], [], { today: TODAY, changes, limits });
-const found = (r) => r.findings.filter((f) => f.severity !== 'info').map(({ kind, severity, file, measured, threshold, line, word }) => ({ kind, severity, file, ...(measured !== undefined ? { measured, threshold } : { line, word }) }));
+// long-review (the review-time part) is proven in test/review.test.mjs; these claims are about the word and wording limits.
+const found = (r) => r.findings.filter((f) => f.severity !== 'info' && f.kind !== 'long-review').map(({ kind, severity, file, measured, threshold, line, word }) => ({ kind, severity, file, ...(measured !== undefined ? { measured, threshold } : { line, word }) }));
 const requirements = (n) => Array.from({ length: n }, (_, i) => '### Requirement: R' + i + '\nThe a SHALL do ' + i + '.\n').join('\n');
 const DEFAULTS = {
   total: { warn: 500, error: 750 }, proposal: { warn: 150, error: 225 }, design: { warn: 125, error: 190 },

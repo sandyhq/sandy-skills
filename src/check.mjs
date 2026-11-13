@@ -1,7 +1,8 @@
 // Lights and drift for a set of parts, from test results and human confirmations. Pure: no I/O, no clock.
 import { normalize, SIDES } from './parts.mjs';
 import { diagramFindings } from './diagram.mjs';
-import { changeFindings, readLimits } from './limits.mjs';
+import { changeFindings, DEFAULT_REVIEW, readLimits } from './limits.mjs';
+import { changeReview } from './review.mjs';
 import { scenarioFindings } from './scenarios.mjs';
 
 /** From weakest to strongest. A part is as proven as its weakest side. */
@@ -54,12 +55,12 @@ function lightOf(test) {
  * @param parts results of parsePart
  * @param tests results of parseJUnit
  * @param opts {today: 'yyyy-mm-dd', openTasks: text of tasks.md of every open change, diagrams: marked blocks from repoBlocks,
- *   changes: open changes from readOpenChanges, limits: from readLimits, specFiles: from readSpecFiles}
+ *   changes: open changes from readOpenChanges, limits: from readLimits, review: from readReview, specFiles: from readSpecFiles}
  */
 /** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
 const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);
 
-export function check(parts, tests, { today, openTasks = '', diagrams = [], changes = [], limits = readLimits(''), specFiles = [] }) {
+export function check(parts, tests, { today, openTasks = '', diagrams = [], changes = [], limits = readLimits(''), review = DEFAULT_REVIEW, specFiles = [] }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today ?? '')) throw new Error('today must be yyyy-mm-dd');
   const findings = [];
   const add = (part, kind, severity, detail, requirement) =>
@@ -169,6 +170,8 @@ export function check(parts, tests, { today, openTasks = '', diagrams = [], chan
   findings.push(...diagramFindings(parts, diagrams));
   // Size and wording of open changes: findings of the change's files, never drift of a part.
   findings.push(...changeFindings(changes, limits));
+  // Estimated review minutes of open changes, before any code: long-review of the change, never drift of a part.
+  findings.push(...changeReview(changes, review));
   // Scenario shape of specs and open changes: findings of the spec file, never drift of a part.
   findings.push(...scenarioFindings(specFiles));
 

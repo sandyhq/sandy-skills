@@ -30,7 +30,7 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 |---|---|
 | `init [--tools LIST] [--skills-dir DIR]` | Sets up OpenSpec if missing, installs the schema as default and the skills |
 | `update [--skills-dir DIR]` | Installs schema and skills again from the installed version |
-| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes, scenarios not shaped GIVEN, WHEN, THEN, TEST, and the releasability report; exit 1 if not releasable |
+| `check --junit FILE\|DIR [--out FILE] [--format md\|json] [--strict]` | Lights, drift, stale diagrams, long or vague open changes, open changes with a long estimated review (`long-review`, no code lines counted), scenarios not shaped GIVEN, WHEN, THEN, TEST, and the releasability report; exit 1 if not releasable |
 | `validate [<openspec validate args>] [--junit FILE\|DIR] [--out FILE] [--strict]` | `openspec validate` with the other arguments, then `check` with `--junit`, `--out` and `--strict` (`--strict` goes to both); prints both, non-zero if either fails |
 | `diagram [<id>] [--write]` | A Mermaid flowchart of every part, or of one part, what is below it and its neighbours; `--write` refreshes every marked block in the repo's Markdown ([diagrams](https://github.com/sandyhq/sandy-skills/blob/main/standards/diagrams.md)) |
 | `review-time --base <ref>` | The estimated review minutes of the diff against the merge base of `<ref>` and HEAD, and each share: change words / 170, code lines / 8 (no tests, Markdown, `openspec/`, lock or generated files), 5 per part, 8 per seam, 2 per claim. Warns above 30 minutes or 200 code lines; exit 1 above 60 minutes or 400 code lines, for a code file no part owns, and for 0 or 2 or more changes or code in a part without a delta spec in the change |
@@ -38,6 +38,16 @@ Records go to `.learn/<who>/`, which is git-ignored. Before you confirm the I si
 | `confirm <id> <I\|We\|They> <who> [--days N]` | The CONFIRMED line, valid at most 90 days; I needs a passed exam |
 | `openspec <args>` | OpenSpec with exactly these arguments: its own `init`, `update` and `--help`, whose names sandy-skills takes |
 | any other command | Goes to OpenSpec unchanged, with its input, output and exit code: `list`, `show`, `new change`, `status`, `instructions`, `archive`, … |
+
+`review-time` and `check` read their weights and thresholds from `openspec/config.yaml`; each missing key keeps its default:
+
+```yaml
+sandy-skills:
+  review:
+    minutes: { warn: 30, error: 60 }
+    lines: { warn: 200, error: 400 }
+    weights: { wordsPerMinute: 170, linesPerMinute: 8, part: 5, seam: 8, claim: 2 }
+```
 
 `OPENSPEC_BIN` overrides which OpenSpec it runs; by default the repo's own install, then the one it brings. `sandy-skills --version` is sandy-skills' version, `sandy-skills version` OpenSpec's.
 

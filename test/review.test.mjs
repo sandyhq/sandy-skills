@@ -6,7 +6,9 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { countWords } from '../src/limits.mjs';
-import { estimate, gate, owners } from '../src/review.mjs';
+import { DEFAULT_REVIEW, estimate, gate, owners, readReview } from '../src/review.mjs';
+import { check } from '../src/check.mjs';
+import { TODAY } from './helpers.mjs';
 
 const BIN = new URL('../bin/sandy-skills.mjs', import.meta.url).pathname;
 const git = (root, ...a) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd: root, encoding: 'utf8' });
@@ -115,4 +117,47 @@ test("review-time SHALL exit 1 when the diff holds 0 changes or 2 or more change
   const archived = reviewTime(repo({ ...parts, 'openspec/changes/c/proposal.md': 'a\n' }, { 'openspec/changes/archive/2026-01-01-c/proposal.md': 'a\n', 'openspec/changes/archive/2026-01-01-c/specs/init/spec.md': delta('X'), 'src/install.mjs': 'a\n' }));
   assert.equal(archived.status, 0, archived.stdout);
   assert.match(archived.stdout, /^changes: c$/m, 'an archived change is the same change as the open one');
+});
+
+test("review-time SHALL read weights, minute thresholds and line thresholds from sandy-skills.review in openspec/config.yaml and keep the default for each missing key.", () => {
+  const config = 'schema: proven\nsandy-skills:\n  limits:\n    total: { warn: 600, error: 900 }\n  review:\n    weights:\n      seam: 12\n';
+  assert.deepEqual(readReview(config), { ...DEFAULT_REVIEW, weights: { ...DEFAULT_REVIEW.weights, seam: 12 } });
+  assert.deepEqual(readReview('sandy-skills:\n  review:\n    minutes: { error: 90 }\n    lines: { warn: 100, error: 150 }\n    weights: { wordsPerMinute: 200, part: 4.5 }\n'),
+    { target: 20, minutes: { warn: 30, error: 90 }, lines: { warn: 100, error: 150 }, weights: { wordsPerMinute: 200, linesPerMinute: 8, part: 4.5, seam: 8, claim: 2 } });
+  assert.deepEqual(readReview(''), DEFAULT_REVIEW);
+  assert.throws(() => readReview('sandy-skills:\n  review:\n    seconds: { warn: 1 }\n'), /openspec\/config\.yaml line 3: sandy-skills\.review\.seconds is no review setting/);
+  assert.throws(() => readReview('sandy-skills:\n  review:\n    weights: { seam: fast }\n'), /line 3: .*seam: fast/);
+  assert.throws(() => readReview('sandy-skills:\n  review:\n    weights: { linesPerMinute: 0 }\n'), /line 3: .*above 0/);
+  const root = repo({ ...part('a', 'src/'), 'openspec/config.yaml': config }, { 'openspec/changes/c/specs/a/spec.md': delta('Seam to b') });
+  const r = reviewTime(root);
+  assert.equal(r.stderr, '');
+  assert.match(r.stdout, /^  seams +1 × 12 = 12 min$/m);
+  assert.match(r.stdout, /^  change words +\d+ \/ 170 = /m);
+  assert.match(r.stdout, /^  code lines +0 \/ 8 = 0 min$/m);
+  assert.match(r.stdout, /^  parts +1 × 5 = 5 min \(a\)$/m);
+  assert.match(r.stdout, /^  claims +0 × 2 = 0 min$/m);
+  const tight = repo({ ...part('a', 'src/'), 'openspec/config.yaml': 'sandy-skills:\n  review:\n    minutes: { warn: 3, error: 4 }\n    lines: { warn: 1, error: 2 }\n' }, { ...seamChange(0), 'src/a.mjs': lines(3) });
+  const s = reviewTime(tight);
+  assert.match(s.stdout, /^target 20 minutes, warn above 3, error above 4$/m);
+  assert.deepEqual(errors(s.stdout).map(([k]) => k), ['long-review', 'many-lines']);
+});
+
+test("check SHALL estimate the review minutes of each open change from its words, parts, seams and claims, warn above the minute warn threshold and fail above the error threshold.", () => {
+  const change = (...specs) => [{ id: 'c', dir: 'openspec/changes/c', files: specs.map((reqs, i) => ({ path: `specs/p${i}/spec.md`, text: delta(...reqs) })) }];
+  const review = (changes, r = DEFAULT_REVIEW) => check([], [], { today: TODAY, changes, review: r });
+  const long = review(change(['Seam to a'], ['Seam to b'], ['Seam to c'], ['Seam to d'], ['Seam to e'], ['X']));
+  const f = long.findings.find((x) => x.kind === 'long-review');
+  assert.deepEqual([f.severity, f.file, f.threshold], ['error', 'openspec/changes/c/', 60]);
+  assert.ok(f.measured > 60 && /^openspec\/changes\/c\/: \d+ review minutes, more than error 60/.test(f.detail), f.detail);
+  assert.equal(long.summary.releasable, false);
+  const mid = review(change(['Seam to a', 'Seam to b', 'Seam to c', 'Seam to d'])).findings.filter((x) => x.kind === 'long-review');
+  assert.deepEqual(mid.map((x) => [x.severity, x.threshold]), [['warning', 30]]);
+  assert.deepEqual(review(change(['X'])).findings.filter((x) => x.kind === 'long-review'), []);
+  const own = review(change(['X']), { ...DEFAULT_REVIEW, minutes: { warn: 1, error: 3 } }).findings.filter((x) => x.kind === 'long-review');
+  assert.deepEqual(own.map((x) => [x.severity, x.threshold]), [['error', 3]], 'the configured thresholds');
+  const root = repo(part('a', 'src/'), { 'openspec/config.yaml': 'sandy-skills:\n  review:\n    minutes: { warn: 1, error: 2 }\n', 'openspec/changes/c/specs/a/spec.md': delta('X') });
+  writeFileSync(join(root, 'specs.json'), '[]');
+  const r = spawnSync(process.execPath, [BIN, 'check', '--root', root, '--specs', join(root, 'specs.json'), '--today', TODAY, '--format', 'json'], { encoding: 'utf8' });
+  assert.equal(r.status, 1, r.stderr);
+  assert.deepEqual(JSON.parse(r.stdout).findings.filter((x) => x.kind === 'long-review').map((x) => [x.severity, x.threshold]), [['error', 2]]);
 });

@@ -3,11 +3,9 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { countWords, proseLines } from './limits.mjs';
+import { countWords, DEFAULT_REVIEW, DEFAULT_WEIGHTS, proseLines } from './limits.mjs';
 
-export const DEFAULT_WEIGHTS = { wordsPerMinute: 170, linesPerMinute: 8, part: 5, seam: 8, claim: 2 };
-/** Owner: target 20 minutes (printed only), warn above 30, fail above 60; code lines warn above 200, fail above 400. */
-export const DEFAULT_REVIEW = { target: 20, minutes: { warn: 30, error: 60 }, lines: { warn: 200, error: 400 }, weights: DEFAULT_WEIGHTS };
+export { DEFAULT_REVIEW, DEFAULT_WEIGHTS, readReview } from './limits.mjs';
 
 /** The shares in minutes and their sum rounded up to whole minutes. */
 export function estimate({ words = 0, lines = 0, parts = 0, seams = 0, claims = 0 }, w = DEFAULT_WEIGHTS) {
@@ -100,7 +98,7 @@ export function measureDiff(root, base) {
   for (const d of deltas) { const code = codePaths(d.text); if (code && !parts.some((p) => p.id === d.id)) parts.push({ id: d.id, code }); }
   const code = numstat.filter((f) => isCode(f.path, generated)).map((f) => ({ ...f, owners: owners(f.path, parts) }));
   const touched = new Set([...code.flatMap((f) => f.owners), ...deltas.map((d) => d.id)]);
-  const requirements = deltas.flatMap((d) => proseLines(d.text).map((l) => REQUIREMENT.exec(l)).filter(Boolean).map((m) => m[1].trim()));
+  const requirements = deltas.flatMap((d) => requirementsOf(d.text));
   const seams = requirements.filter((n) => /^Seam to /.test(n)).length;
   return { base, words, lines: code.reduce((n, f) => n + f.lines, 0), parts: [...touched].sort(), seams, claims: requirements.length - seams, changes: [...changes.keys()].sort(), code, deltas: deltas.map((d) => d.id) };
 }
@@ -124,6 +122,31 @@ export function gate(m, minutes, review = DEFAULT_REVIEW) {
   if (m.changes.length === 0) findings.push({ kind: 'no-change', severity: 'error', detail: 'the diff holds no change; one merge request is one change' });
   else for (const id of [...new Set(m.code.flatMap((f) => f.owners))].sort().filter((p) => !m.deltas.includes(p))) {
     findings.push({ kind: 'no-delta-spec', severity: 'error', detail: `${id} changes code, but no change in the diff has a delta spec for ${id}` });
+  }
+  return findings;
+}
+
+/** Requirement names in the prose of a delta spec. */
+const requirementsOf = (text) => proseLines(text).map((l) => REQUIREMENT.exec(l)).filter(Boolean).map((m) => m[1].trim());
+
+/**
+ * Findings long-review for open changes, before any code: words of the change, a part per delta spec, its seams and
+ * claims, no code lines. Warning above the minute warn threshold, error above the error threshold.
+ * @param changes [{id, dir, files: [{path, text}]}] as readOpenChanges
+ */
+export function changeReview(changes, review = DEFAULT_REVIEW) {
+  const findings = [];
+  for (const change of changes) {
+    const md = change.files.filter((f) => MARKDOWN.test(f.path));
+    const deltas = md.filter((f) => /^specs\/.+\/spec\.md$/.test(f.path));
+    const requirements = deltas.flatMap((f) => requirementsOf(f.text));
+    const seams = requirements.filter((n) => /^Seam to /.test(n)).length;
+    const words = md.reduce((n, f) => n + countWords(f.text, { tasks: f.path === 'tasks.md' }), 0);
+    const { minutes } = estimate({ words, parts: deltas.length, seams, claims: requirements.length - seams }, review.weights);
+    const { warn, error } = review.minutes;
+    const file = `${change.dir}/`;
+    if (minutes > error) findings.push({ part: change.id, kind: 'long-review', severity: 'error', file, measured: minutes, threshold: error, detail: `${file}: ${minutes} review minutes, more than error ${error}; split the change` });
+    else if (minutes > warn) findings.push({ part: change.id, kind: 'long-review', severity: 'warning', file, measured: minutes, threshold: warn, detail: `${file}: ${minutes} review minutes, more than warn ${warn}; split the change before it reaches ${error}` });
   }
   return findings;
 }
