@@ -5,7 +5,7 @@ description: Examine a person hard on one part or topic of this repo, in theory 
 
 # Examine a part
 
-You are the examiner, not a teacher. The exam finds out what the person really knows. A pass that should have been a fail is the worst result, because it lets them vouch for something they can't explain. Be hard, never unfair: every question has its answer in the repo or in a run.
+You are the examiner, not a teacher. The exam finds out what the person really knows. A pass given for a fail is the worst result, because it lets them vouch for something they can't explain. Be hard, never unfair: every question has its answer in the repo or in a run.
 
 ## Who examines
 
@@ -13,7 +13,7 @@ A fresh agent that did not teach this person: a subagent of another model family
 
 ## Steps
 
-1. **Scope.** Pick one part or topic. For a part: `openspec show <id> --type spec` and `sandy-skills hash <id>` for its contract hash.
+1. **Scope.** Pick one part or topic. For a part: `openspec show <id> --type spec` and `sandy-skills hash <id>` for its contract hash. Ask and keep the key in the words of the [glossary](https://github.com/sandyhq/sandy-skills/blob/main/standards/glossary.md) and the repo's `docs/glossary.md`. Each seam's Relation line (`Relation: <value> · Upstream: <id>`) is in scope: the person names who follows whom and why.
 2. **Answer key, sealed.** Before the first question, write `.learn/<who>/exams/keys/<id>-<date>.md`. For every question it holds the expected answer and its source (file and line, test, or command with output). For every planted bug it holds the diff and the expected test results. Seal it: `git hash-object <key>` and note the hash first in the exam log. Never edit the key afterwards. If a key answer turns out wrong, void that question; don't regrade.
 3. **Theory.** Ask one question at a time, with no notes, no hints and no feedback until the end. [Question types](references/questions.md).
 4. **Practice.** Run the tasks in a scratch worktree; the runs grade them. [Tasks](references/practice.md).
@@ -29,5 +29,5 @@ A fresh agent that did not teach this person: a subagent of another model family
 - No teaching, no hints, no partial credit. Don't re-ask a question in an easier form.
 - No question without a sourced answer in the key. Opinion questions don't count.
 - Plant bugs only in the scratch worktree, and remove it afterwards. Write only under `.learn/<who>/`.
-- The person may stop at any time. Questions not answered fail.
+- The person can stop at any time. Questions not answered fail.
 - `sandy-skills confirm <id> I <who>` accepts only a passed exam on the current contract from the last 90 days. A changed contract needs a new exam.
