@@ -8,7 +8,7 @@ const PACKAGE_GLOSSARY = new URL('../standards/glossary.md', import.meta.url);
 const EXCEPT_HEADINGS = /\s*\(except headings\)\s*$/;
 
 /**
- * The entries of a glossary text: each level 2 heading is a word, the lines below it up to a Not: line are its
+ * The entries of a glossary text: each level 2 heading is a word (up to 3 spaces before ##, a closing # run dropped), the lines below it up to a Not: line are its
  * definition, and the Not: line lists the words that name the same thing, a word marked (except headings) is
  * allowed in headings. relations: the bold values listed in the entry relation.
  * @returns {entries: [{word, definition, not: [{term, exceptHeadings}]}], relations: [value]}
@@ -18,9 +18,9 @@ export function parseGlossary(text) {
   const relations = [];
   let entry = null;
   for (const line of proseLines(String(text ?? '').replace(/\r\n?/g, '\n'))) {
-    const h = /^##\s+(.+?)\s*$/.exec(line);
+    const h = /^ {0,3}##[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/.exec(line);
     if (h) { entry = { word: h[1], definition: '', not: [] }; entries.push(entry); continue; }
-    if (/^#\s/.test(line)) { entry = null; continue; }
+    if (/^ {0,3}#(\s|$)/.test(line)) { entry = null; continue; }
     if (!entry || line.trim() === '') continue;
     const n = /^Not:\s*(.*)$/.exec(line.trim());
     if (n) {

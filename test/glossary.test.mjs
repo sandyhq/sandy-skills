@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { parseGlossary, readGlossary } from '../src/glossary.mjs';
+import { mergeGlossaries, parseGlossary, readGlossary, wrongTermFindings } from '../src/glossary.mjs';
 import { check } from '../src/check.mjs';
 import { TODAY } from './helpers.mjs';
 
@@ -92,4 +92,12 @@ test("check SHALL find a Not term of 2 or more words across a soft line wrap and
   ].join('\n');
   const r = check([], [], { today: TODAY, specFiles: [{ part: 'a', file: 'openspec/specs/a/spec.md', text }] });
   assert.deepEqual(wrong(r).map((f) => [f.line, f.word]), [[1, 'pull request'], [2, 'contract between parts'], [2, 'pull request'], [4, 'bounded context'], [12, 'bounded context']]);
+});
+
+test("check SHALL read each level 2 heading of a glossary as CommonMark does, with up to 3 spaces before it and without its closing #, as the word it defines.", () => {
+  const words = (repo) => mergeGlossaries('# G\n\n## seam\nA link.\nNot: PR, MR, story\n', repo);
+  const g = words('# Domain\n\n## PR ##\nA purchase request.\n\n   ## MR #\nA meter reading.\n\n    ## story\nIndented code, no heading.\n');
+  assert.deepEqual(g.words, ['seam', 'PR', 'MR']);
+  assert.deepEqual(g.nots.map((n) => n.term), ['story']);
+  assert.deepEqual(parseGlossary('## C# ##\nA language.\n').entries.map((e) => e.word), ['C#']);
 });
