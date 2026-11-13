@@ -91,9 +91,9 @@ export function measureDiff(root, base) {
   }
   const parts = [];
   const specs = join(root, 'openspec', 'specs');
-  if (existsSync(specs)) for (const id of readdirSync(specs).sort()) {
-    const file = join(specs, id, 'spec.md');
-    if (existsSync(file)) parts.push({ id, code: codePaths(readFileSync(file, 'utf8')) ?? [] });
+  // A spec at any depth is a part; its id is the folder path below openspec/specs, as OpenSpec lists it (domain/service).
+  if (existsSync(specs)) for (const f of walk(specs).filter((x) => /(^|\/)spec\.md$/.test(x) && x !== 'spec.md')) {
+    parts.push({ id: f.replace(/\/spec\.md$/, ''), code: codePaths(readFileSync(join(specs, f), 'utf8')) ?? [] });
   }
   for (const d of deltas) { const code = codePaths(d.text); if (code && !parts.some((p) => p.id === d.id)) parts.push({ id: d.id, code }); }
   const code = numstat.filter((f) => isCode(f.path, generated)).map((f) => ({ ...f, owners: owners(f.path, parts) }));

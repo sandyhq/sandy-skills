@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { countWords } from '../src/limits.mjs';
-import { DEFAULT_REVIEW, estimate, gate, owners, readReview } from '../src/review.mjs';
+import { DEFAULT_REVIEW, estimate, gate, isCode, owners, readReview } from '../src/review.mjs';
 import { check } from '../src/check.mjs';
 import { TODAY } from './helpers.mjs';
 
@@ -160,4 +160,11 @@ test("check SHALL estimate the review minutes of each open change from its words
   const r = spawnSync(process.execPath, [BIN, 'check', '--root', root, '--specs', join(root, 'specs.json'), '--today', TODAY, '--format', 'json'], { encoding: 'utf8' });
   assert.equal(r.status, 1, r.stderr);
   assert.deepEqual(JSON.parse(r.stdout).findings.filter((x) => x.kind === 'long-review').map((x) => [x.severity, x.threshold]), [['error', 2]]);
+});
+
+test("review-time SHALL read each spec under openspec/specs at any depth as the part whose id is its folder path below openspec/specs, such as domain/service.", () => {
+  const r = reviewTime(repo(part('domain/service', 'src/'), { 'openspec/changes/c/specs/domain/service/spec.md': delta('X'), 'src/a.mjs': 'a\n' }));
+  assert.equal(r.status, 0, r.stdout);
+  assert.match(r.stdout, /^  parts +1 × 5 = 5 min \(domain\/service\)$/m);
+  assert.deepEqual(errors(r.stdout), []);
 });
