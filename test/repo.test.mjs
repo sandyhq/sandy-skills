@@ -2,13 +2,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { loadSpecs, openspecCommand } from '../src/openspec.mjs';
+import { parsePart } from '../src/parts.mjs';
+import { check } from '../src/check.mjs';
+import { isCode, owners } from '../src/review.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
 const read = (p) => readFileSync(root + p, 'utf8');
 const skills = readdirSync(root + 'skills', { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
-import { openspecCommand } from '../src/openspec.mjs';
-import { isCode, owners } from '../src/review.mjs';
 const [cmd, ...pre] = openspecCommand(root);
 const openspec = (...args) => spawnSync(cmd, [...pre, ...args], { cwd: root, encoding: 'utf8' });
 const git = (...args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }).stdout;
@@ -97,4 +101,20 @@ test("Each code file that git tracks in this repository SHALL lie under the Code
   const files = git('ls-files').trim().split('\n').filter((f) => isCode(f));
   assert.ok(files.includes('bin/sandy-skills.mjs') && files.includes('package.json'));
   assert.deepEqual(files.map((f) => [f, owners(f, parts)]).filter(([, o]) => o.length !== 1), []);
+});
+
+test("A part written from the spec template SHALL pass check without missing-relation or bad-relation.", () => {
+  const filled = read('openspec/schemas/proven/templates/spec.md').split('\n').map((line) => line
+    .replace(/^(### Requirement: Seam to )<!--[^>]*-->/, '$1b')
+    .replace(/^Relation: <!--[\s\S]*?--> · Upstream: <!--[\s\S]*?-->/, 'Relation: conformist · Upstream: b')
+    .replace(/<!--[\s\S]*?-->/g, 'x')).join('\n').replace('## ADDED Requirements', '## Requirements');
+  assert.match(filled, /^### Requirement: Seam to b\n.*\nRelation: conformist · Upstream: b$/m, 'the template has a seam with a Relation line');
+  const dir = mkdtempSync(join(tmpdir(), 'sandy-skills-template-'));
+  for (const [id, text] of [['a', '# a Specification\n\n' + filled], ['b', '# b Specification\n\n' + filled.replace(/Seam to b/g, 'Seam to a').replace(/Upstream: b/, 'Upstream: a')]]) {
+    mkdirSync(join(dir, 'openspec', 'specs', id), { recursive: true });
+    writeFileSync(join(dir, 'openspec', 'specs', id, 'spec.md'), text);
+  }
+  const parts = loadSpecs(dir).map(parsePart);
+  assert.deepEqual(parts.map((p) => p.seams.map((s) => [s.to, s.relation?.value])), [[['b', 'conformist']], [['a', 'conformist']]]);
+  assert.deepEqual(check(parts, [], { today: '2026-11-13' }).findings.filter((f) => /relation/.test(f.kind)), []);
 });

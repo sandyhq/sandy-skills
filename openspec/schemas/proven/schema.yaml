@@ -61,8 +61,10 @@ artifacts:
         `Kind: <context|system|container|component|operation> · Part of: <spec id or none> · Carried by: <who> · Status: <proposed|active|retired> · Code: <paths>`.
       - `### Requirement: Contract`: what must hold, as one SHALL sentence.
       - `### Requirement: Seam to <spec id>`: one per neighbour this part talks
-        to; add `Read-only.` or `Exclusive.` (the only writer) to the sentence.
-      - Every other requirement is one claim: one EARS sentence with SHALL
+        to; add `Read-only.` or `Exclusive.` (the only writer) to the sentence,
+        then the line `Relation: <value> · Upstream: <spec id>` with 1 of the 7
+        relation values in standards/glossary.md.
+      - Every other `### Requirement:` heading is one claim: one EARS sentence with SHALL
         (`When <trigger>, the <part> SHALL ...`, `If <unwanted>, then ...`,
         `While <state>, ...`, `Where <feature>, ...`, or plain `The <part> SHALL ...`).
       - Every scenario has exactly these lines, in this order:
@@ -71,7 +73,7 @@ artifacts:
         - **THEN** <the outcome>
         - **TEST** `<path>::<test name>`
         `- **AND**` lines are allowed after GIVEN, WHEN or THEN. The test's name
-        is the requirement sentence, word for word. `sandy-skills check`
+        is the claim sentence, word for word. `sandy-skills check`
         reports every other shape as the error scenario-shape.
       - Never write `- **CONFIRMED**` or `- **REFUTED**` lines: only people add
         them, through the confirm-part skill.

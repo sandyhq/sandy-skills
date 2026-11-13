@@ -14,7 +14,17 @@ The <!-- part --> SHALL <!-- what must hold, one sentence -->.
 - **GIVEN** <!-- starting state; "any repo" when it does not matter -->
 - **WHEN** <!-- action -->
 - **THEN** <!-- outcome -->
-- **TEST** `<!-- path -->::<!-- test name = the requirement sentence -->`
+- **TEST** `<!-- path -->::<!-- test name = the claim sentence -->`
+
+### Requirement: Seam to <!-- id of the other part -->
+The <!-- part --> SHALL <!-- what it reads from or writes to the other part -->. <!-- "Read-only." or "Exclusive." when it holds -->
+Relation: <!-- 1 of partnership, shared-kernel, customer-supplier, conformist, anticorruption-layer, open-host-service, published-language; see standards/glossary.md --> · Upstream: <!-- id of the part the other one follows -->
+
+#### Scenario: <!-- case -->
+- **GIVEN** <!-- starting state; "any repo" when it does not matter -->
+- **WHEN** <!-- action -->
+- **THEN** <!-- outcome -->
+- **TEST** `<!-- path -->::<!-- test name = the seam sentence -->`
 
 ### Requirement: <!-- claim name -->
 When <!-- trigger -->, the <!-- part --> SHALL <!-- response -->.
@@ -23,4 +33,4 @@ When <!-- trigger -->, the <!-- part --> SHALL <!-- response -->.
 - **GIVEN** <!-- starting state; "any repo" when it does not matter -->
 - **WHEN** <!-- action -->
 - **THEN** <!-- outcome -->
-- **TEST** `<!-- path -->::<!-- test name = the requirement sentence -->`
+- **TEST** `<!-- path -->::<!-- test name = the claim sentence -->`
