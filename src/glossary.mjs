@@ -59,11 +59,11 @@ export const standardGlossary = () => (standard ??= mergeGlossaries(readFileSync
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
 /** The term as a whole word in any case; a plural with s, es or y → ies counts too; _ is part of a word. */
-const termRe = (term) => {
+const termRe = (term, flags = 'iu') => {
   const words = term.trim().split(/\s+/).map(escape);
   const last = words.pop();
   const forms = [`${last}(?:s|es)?`, ...(/y$/i.test(last) ? [`${last.slice(0, -1)}ies`] : [])];
-  return new RegExp(`(?<![\\p{L}\\p{N}_])${[...words, `(?:${forms.join('|')})`].join('\\s+')}(?![\\p{L}\\p{N}_])`, 'iu');
+  return new RegExp(`(?<![\\p{L}\\p{N}_])${[...words, `(?:${forms.join('|')})`].join('\\s+')}(?![\\p{L}\\p{N}_])`, flags);
 };
 
 const LIST = /^\s{0,3}([-*+]|\d{1,9}[.)])(\s|$)/;
@@ -81,8 +81,9 @@ const visible = (line) => line
 
 /**
  * The prose of a Markdown text, 1 entry per line, line numbers kept: fenced and indented code, HTML comments, code
- * spans and addresses blanked. heading: the line belongs to an ATX or a setext heading.
- * @returns [{text, heading}]
+ * spans and addresses blanked. heading: the line belongs to an ATX or a setext heading. start: the line starts a
+ * block (a paragraph, list item, table row or heading); the lines up to the next start are 1 paragraph.
+ * @returns [{text, heading, start}]
  */
 export function proseOf(text) {
   const lines = blankCodeSpans(proseLines(String(text ?? '').replace(/\r\n?/g, '\n')).join('\n')).split('\n');
@@ -92,40 +93,65 @@ export function proseOf(text) {
   let inCode = false;
   let afterBlank = true;
   for (const line of lines) {
-    if (line.trim() === '') { out.push({ text: '', heading: false }); para = []; afterBlank = true; continue; }
+    if (line.trim() === '') { out.push({ text: '', heading: false, start: true }); para = []; afterBlank = true; continue; }
     const indent = indentOf(line);
-    if (indent >= 4 && !para.length && !inList && (afterBlank || inCode)) { out.push({ text: '', heading: false }); inCode = true; afterBlank = false; continue; }
+    if (indent >= 4 && !para.length && !inList && (afterBlank || inCode)) { out.push({ text: '', heading: false, start: true }); inCode = true; afterBlank = false; continue; }
     inCode = false;
     if (LIST.test(line)) inList = true; else if (afterBlank && indent === 0) inList = false;
     afterBlank = false;
-    if (ATX.test(line)) { out.push({ text: visible(line), heading: true }); para = []; continue; }
+    if (ATX.test(line)) { out.push({ text: visible(line), heading: true, start: true }); para = []; continue; }
     if (SETEXT.test(line) && para.length) {
       if (!para.some((i) => LIST.test(lines[i]))) for (const i of para) out[i].heading = true;
-      out.push({ text: '', heading: false });
+      out.push({ text: '', heading: false, start: true });
       para = [];
       continue;
     }
+    const start = !para.length || LIST.test(line) || /^\s*\|/.test(line);
     para.push(out.length);
-    out.push({ text: visible(line), heading: false });
+    out.push({ text: visible(line), heading: false, start });
   }
   return out;
 }
 
+/** Emphasis markers removed, the words kept: *, ~~, and _ at the edge of a word, never inside one as in node_modules. */
+const plain = (line) => line.replace(/\*+|~~/g, '').replace(/(?<![\p{L}\p{N}])_+|_+(?![\p{L}\p{N}])/gu, '');
+
+/** The paragraphs of proseOf with their first line: [{first: 0-based line, heading, text: lines joined by \n}]. */
+function paragraphs(lines) {
+  const out = [];
+  lines.forEach((l, i) => {
+    if (!l.text.trim()) return;
+    const last = out.at(-1);
+    if (l.start || !last || last.end !== i - 1) out.push({ first: i, end: i, heading: l.heading, lines: [plain(l.text)] });
+    else { last.end = i; last.lines.push(plain(l.text)); }
+  });
+  return out.map((p) => ({ first: p.first, heading: p.heading, text: p.lines.join('\n') }));
+}
+
 /**
- * Errors wrong-term for the specs and the Markdown files of open changes: each Not term in the prose (proseOf), and
- * outside headings for a term marked except headings.
+ * Errors wrong-term for the specs and the Markdown files of open changes: each Not term in the prose (proseOf),
+ * across soft line wraps and emphasis within 1 paragraph, and outside headings for a term marked except headings.
+ * 1 finding per term and line, at the line where the term starts.
  * @param files [{part, file, text}]
  */
 export function wrongTermFindings(files, glossary = standardGlossary()) {
-  const res = glossary.nots.map((n) => ({ ...n, re: termRe(n.term) }));
+  const res = glossary.nots.map((n) => ({ ...n, re: termRe(n.term, 'giu') }));
   const findings = [];
   for (const { part, file, text } of files) {
-    proseOf(text).forEach(({ text: line, heading }, i) => {
-      for (const n of res) {
-        if ((heading && n.exceptHeadings) || !n.re.test(line)) continue;
-        findings.push({ part, kind: 'wrong-term', severity: 'error', file, line: i + 1, word: n.term, glossaryWord: n.word, detail: `${file}:${i + 1}: "${n.term}" is not a glossary word; write "${n.word}"` });
-      }
-    });
+    const hits = new Map();
+    for (const p of paragraphs(proseOf(text))) {
+      res.forEach((n, k) => {
+        if (p.heading && n.exceptHeadings) return;
+        for (const m of p.text.matchAll(n.re)) {
+          const line = p.first + 1 + (p.text.slice(0, m.index).match(/\n/g)?.length ?? 0);
+          hits.set(`${line}:${k}`, [line, k]);
+        }
+      });
+    }
+    for (const [line, k] of [...hits.values()].sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
+      const n = res[k];
+      findings.push({ part, kind: 'wrong-term', severity: 'error', file, line, word: n.term, glossaryWord: n.word, detail: `${file}:${line}: "${n.term}" is not a glossary word; write "${n.word}"` });
+    }
   }
   return findings;
 }

@@ -82,3 +82,14 @@ test("check SHALL read for wrong-term only the prose of Markdown, never indented
   const r = check([], [], { today: TODAY, specFiles: [{ part: 'a', file: 'openspec/specs/a/spec.md', text }] });
   assert.deepEqual(wrong(r).map((f) => [f.line, f.word]), [[8, 'module'], [14, 'module']]);
 });
+
+test("check SHALL find a Not term of 2 or more words across a soft line wrap and through emphasis within 1 paragraph, and report it at the line where it starts.", () => {
+  const text = [
+    'A pull', 'request is open. The contract *between* parts and a **pull** request.', '', // 1-3: wrap, emphasis
+    'A bounded', 'context, a pull', '', 'request in a new paragraph.', // 4-7: wrap; no phrase across the blank line
+    '- a pull', '- request item', '## Pull', 'request', // 8-11: no phrase across list items or a heading
+    'A _bounded_ context in node_modules.', // 12: underscores as emphasis
+  ].join('\n');
+  const r = check([], [], { today: TODAY, specFiles: [{ part: 'a', file: 'openspec/specs/a/spec.md', text }] });
+  assert.deepEqual(wrong(r).map((f) => [f.line, f.word]), [[1, 'pull request'], [2, 'contract between parts'], [2, 'pull request'], [4, 'bounded context'], [12, 'bounded context']]);
+});
