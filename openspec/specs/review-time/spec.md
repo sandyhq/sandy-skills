@@ -96,3 +96,12 @@ review-time SHALL read each spec under openspec/specs at any depth as the part w
 - **WHEN** review-time runs
 - **THEN** it counts 1 part domain/service and reports no unowned-file
 - **TEST** `test/review.test.mjs::review-time SHALL read each spec under openspec/specs at any depth as the part whose id is its folder path below openspec/specs, such as domain/service.`
+
+### Requirement: Go and Python tests
+review-time SHALL count Go files ending in _test.go and Python files named test_*.py or *_test.py as tests, never as code lines.
+
+#### Scenario: Go and Python tests
+- **GIVEN** a change with a delta spec for service changes src/a.go (3 lines), src/contest.py (2 lines), src/a_test.go (400 lines), src/test_a.py (50 lines) and src/a_test.py (60 lines)
+- **WHEN** review-time runs
+- **THEN** it counts 5 code lines
+- **TEST** `test/review.test.mjs::review-time SHALL count Go files ending in _test.go and Python files named test_*.py or *_test.py as tests, never as code lines.`

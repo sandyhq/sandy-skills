@@ -14,7 +14,8 @@ export function estimate({ words = 0, lines = 0, parts = 0, seams = 0, claims = 
   return { minutes: Math.ceil(Math.round(exact * 1e6) / 1e6), shares };
 }
 
-const TEST = /(^|\/)(test|tests|__tests__)\/|\.(test|spec)\.[^/]+$/;
+// Test folders; *.test.* and *.spec.*; Go *_test.go; Python test_*.py and *_test.py, as go test and pytest find them.
+const TEST = /(^|\/)(test|tests|__tests__)\/|\.(test|spec)\.[^/]+$|_test\.go$|(^|\/)test_[^/]*\.py$|_test\.py$/;
 const LOCK = /(^|\/)[^/]*-lock\.[^/]+$|\.lockb?$|(^|\/)go\.sum$/;
 const MARKDOWN = /\.(md|markdown|mdx)$/i;
 

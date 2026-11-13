@@ -168,3 +168,11 @@ test("review-time SHALL read each spec under openspec/specs at any depth as the 
   assert.match(r.stdout, /^  parts +1 × 5 = 5 min \(domain\/service\)$/m);
   assert.deepEqual(errors(r.stdout), []);
 });
+
+test("review-time SHALL count Go files ending in _test.go and Python files named test_*.py or *_test.py as tests, never as code lines.", () => {
+  for (const p of ['src/a_test.go', 'src/test_a.py', 'src/a_test.py', 'test_b.py']) assert.equal(isCode(p), false, p);
+  for (const p of ['src/a.go', 'src/contest.py', 'src/latest.go', 'src/test.go']) assert.equal(isCode(p), true, p);
+  const r = reviewTime(repo(part('service', 'src/'), { 'openspec/changes/c/specs/service/spec.md': delta('X'), 'src/a.go': lines(3), 'src/contest.py': lines(2), 'src/a_test.go': lines(400), 'src/test_a.py': lines(50), 'src/a_test.py': lines(60) }));
+  assert.match(r.stdout, /^  code lines +5 \/ 8 = /m, r.stdout);
+  assert.equal(r.status, 0, r.stdout);
+});
