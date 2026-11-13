@@ -1,0 +1,35 @@
+# glossary Specification
+
+## Purpose
+Fixes 1 word for each thing, so that no reader of a spec or a change has to guess.
+
+Kind: component · Part of: cli · Carried by: nesyeklaf · Status: active · Code: src/glossary.mjs, standards/glossary.md
+
+## Requirements
+
+### Requirement: Contract
+The glossary SHALL give each thing of the standard exactly 1 word, and check SHALL block the other words for it.
+
+#### Scenario: Contract
+- **GIVEN** a spec with each Not word of standards/glossary.md
+- **WHEN** check runs
+- **THEN** it blocks each one
+- **TEST** `test/glossary.test.mjs::The glossary SHALL give each thing of the standard exactly 1 word, and check SHALL block the other words for it.`
+
+### Requirement: Entries
+check SHALL read each glossary entry as a level 2 heading with the word, 1 definition and an optional line Not: with the words that name the same thing.
+
+#### Scenario: Entries
+- **GIVEN** a glossary with the entry seam and the line `Not: contract between parts`
+- **WHEN** check runs
+- **THEN** it knows 1 word and 1 Not word
+- **TEST** `test/glossary.test.mjs::check SHALL read each glossary entry as a level 2 heading with the word, 1 definition and an optional line Not: with the words that name the same thing.`
+
+### Requirement: Wrong term
+check SHALL report wrong-term as an error with file, line, word and glossary word when a spec or an open change uses a word from a Not line outside code and backticks, and outside headings for a word marked except headings.
+
+#### Scenario: Wrong term
+- **GIVEN** proposal.md of an open change says `contract between parts` in line 4
+- **WHEN** check runs
+- **THEN** it reports wrong-term at line 4 and names seam
+- **TEST** `test/glossary.test.mjs::check SHALL report wrong-term as an error with file, line, word and glossary word when a spec or an open change uses a word from a Not line outside code and backticks, and outside headings for a word marked except headings.`

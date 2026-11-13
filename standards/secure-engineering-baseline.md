@@ -25,7 +25,7 @@ Maintained and current libraries; no secrets in code; input validation; secure a
 
 ## Changes
 
-Every change in behaviour starts as an OpenSpec change (`openspec/changes/<id>`) and is approved through its MR.
+Every change in behaviour starts as an OpenSpec change (`openspec/changes/<id>`) and is approved through its merge request.
 
 ## Open
 

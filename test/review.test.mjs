@@ -50,7 +50,7 @@ test("review-time SHALL count as code lines the changed lines outside tests, Mar
   assert.match(r.stdout, /^  code lines +30 \/ 8 = 3\.8 min$/m);
 });
 
-test("review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to requirement and a claim for each other requirement.", () => {
+test("review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to heading and a claim for each other heading at level 3.", () => {
   const root = repo({ ...part('cli', 'src/'), ...part('diagram', 'src/diagram.mjs'), 'src/diagram.mjs': 'a\n' }, { 'src/diagram.mjs': 'b\n' });
   const r = reviewTime(root);
   assert.equal(r.stderr, '');

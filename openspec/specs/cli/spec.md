@@ -53,22 +53,22 @@ If a TEST, CONFIRMED or metadata line is malformed, then the checker SHALL repor
 - **TEST** `test/parse.test.mjs::If a TEST, CONFIRMED or metadata line is malformed, then the checker SHALL report it as an error.`
 
 ### Requirement: Passing test
-When a referenced test passed, the checker SHALL light the requirement hard.
+When a referenced test passed, the checker SHALL light the claim hard.
 
 #### Scenario: Passing test
 - **GIVEN** the referenced test passed
 - **WHEN** the checker runs
-- **THEN** the requirement is hard
-- **TEST** `test/check.test.mjs::When a referenced test passed, the checker SHALL light the requirement hard.`
+- **THEN** the claim is hard
+- **TEST** `test/check.test.mjs::When a referenced test passed, the checker SHALL light the claim hard.`
 
 ### Requirement: Failing test
-When a referenced test failed, the checker SHALL report a break and light the requirement refuted.
+When a referenced test failed, the checker SHALL report a break and light the claim refuted.
 
 #### Scenario: Failing test
 - **GIVEN** the referenced test failed
 - **WHEN** the checker runs
 - **THEN** the checker reports a break
-- **TEST** `test/check.test.mjs::When a referenced test failed, the checker SHALL report a break and light the requirement refuted.`
+- **TEST** `test/check.test.mjs::When a referenced test failed, the checker SHALL report a break and light the claim refuted.`
 
 ### Requirement: Missing test
 If a TEST line names a test that the report does not contain, then the checker SHALL report missing-test as an error.
@@ -80,13 +80,13 @@ If a TEST line names a test that the report does not contain, then the checker S
 - **TEST** `test/check.test.mjs::If a TEST line names a test that the report does not contain, then the checker SHALL report missing-test as an error.`
 
 ### Requirement: Claim mismatch
-When a test name is a sentence that differs from its requirement, the checker SHALL report claim-mismatch.
+When a test name is a sentence that differs from its claim, the checker SHALL report claim-mismatch.
 
 #### Scenario: Claim mismatch
-- **GIVEN** a test's sentence that differs from its requirement
+- **GIVEN** a test's sentence that differs from its claim
 - **WHEN** the checker runs
 - **THEN** the checker reports claim-mismatch
-- **TEST** `test/check.test.mjs::When a test name is a sentence that differs from its requirement, the checker SHALL report claim-mismatch.`
+- **TEST** `test/check.test.mjs::When a test name is a sentence that differs from its claim, the checker SHALL report claim-mismatch.`
 
 ### Requirement: Todo outside a change
 When a todo test is listed in no open change, the checker SHALL report todo-outside-change as a warning.
@@ -368,13 +368,13 @@ The checker SHALL read HTML comments and fences in document order, so a fence in
 - **TEST** `test/limits.test.mjs::The checker SHALL read HTML comments and fences in document order, so a fence inside a comment and a comment opener inside a fence hide no prose after them.`
 
 ### Requirement: Requirements in prose
-The checker SHALL count only requirement headings outside fenced code and HTML comments.
+The checker SHALL count only the claims outside fenced code and HTML comments.
 
 #### Scenario: Requirements in prose
-- **GIVEN** a delta spec has 1 requirement and 8 requirement headings in a code fence and a comment
+- **GIVEN** a delta spec has 1 claim and 8 claim headings in a code fence and a comment
 - **WHEN** check runs
-- **THEN** check counts 1 requirement
-- **TEST** `test/limits.test.mjs::The checker SHALL count only requirement headings outside fenced code and HTML comments.`
+- **THEN** check counts 1 claim
+- **TEST** `test/limits.test.mjs::The checker SHALL count only the claims outside fenced code and HTML comments.`
 
 ### Requirement: Missing step
 If a scenario misses a GIVEN, WHEN, THEN or TEST line, then the checker SHALL report the error scenario-shape with file and line.

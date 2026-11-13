@@ -36,6 +36,7 @@ flowchart LR
   subgraph p_sandy_2d_skills["sandy-skills"]
     subgraph p_cli["cli"]
       p_diagram["diagram"]
+      p_glossary["glossary"]
       p_init["init"]
       p_review_2d_time["review-time"]
     end

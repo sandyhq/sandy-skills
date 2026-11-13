@@ -164,7 +164,7 @@ test('The checker SHALL read HTML comments and fences in document order, so a fe
   assert.equal(countWords('<!-- x\n' + F + '\n-->\nfour words after it'), 4);
 });
 
-test('The checker SHALL count only requirement headings outside fenced code and HTML comments.', () => {
+test('The checker SHALL count only the claims outside fenced code and HTML comments.', () => {
   const heads = (n) => Array(n).fill('### Requirement: Example').join('\n');
   const text = requirements(6) + '\n\x60\x60\x60markdown\n' + heads(8) + '\n\x60\x60\x60\n<!--\n' + heads(8) + '\n-->\n';
   assert.deepEqual(found(run([change({ 'specs/a/spec.md': text })])), [

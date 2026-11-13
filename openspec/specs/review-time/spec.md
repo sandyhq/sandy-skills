@@ -26,13 +26,13 @@ review-time SHALL count as code lines the changed lines outside tests, Markdown,
 - **TEST** `test/review.test.mjs::review-time SHALL count as code lines the changed lines outside tests, Markdown, openspec/, lock files and linguist-generated files.`
 
 ### Requirement: Deepest part
-review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to requirement and a claim for each other requirement.
+review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to heading and a claim for each other heading at level 3.
 
 #### Scenario: Deepest part
 - **GIVEN** cli owns src/, diagram owns src/diagram.mjs, and the diff changes src/diagram.mjs
 - **WHEN** review-time runs
 - **THEN** it counts the part diagram only
-- **TEST** `test/review.test.mjs::review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to requirement and a claim for each other requirement.`
+- **TEST** `test/review.test.mjs::review-time SHALL count a part for each changed file under its Code paths, deepest match first, and for each delta spec; a seam for each Seam to heading and a claim for each other heading at level 3.`
 
 ### Requirement: Time bands
 review-time SHALL warn above 30 minutes and exit 1 above 60 minutes.
@@ -83,7 +83,7 @@ review-time SHALL read weights, minute thresholds and line thresholds from sandy
 check SHALL estimate the review minutes of each open change from its words, parts, seams and claims, warn above the minute warn threshold and fail above the error threshold.
 
 #### Scenario: Change with many seams
-- **GIVEN** an open change with 6 delta specs and 5 Seam to requirements
+- **GIVEN** an open change with 6 delta specs and 5 seams
 - **WHEN** check runs
 - **THEN** check fails with long-review
 - **TEST** `test/review.test.mjs::check SHALL estimate the review minutes of each open change from its words, parts, seams and claims, warn above the minute warn threshold and fail above the error threshold.`

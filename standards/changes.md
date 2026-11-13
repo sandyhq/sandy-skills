@@ -41,7 +41,7 @@ None open.
 - [ ] 3.1 Thresholds; run tests
 ```
 
-**Delta specs** follow the [spec format](spec-format.md): one SHALL sentence per requirement, scenarios as GIVEN, WHEN, THEN, TEST, Purpose first in new parts.
+**Delta specs** follow the [spec format](spec-format.md): one SHALL sentence per claim, scenarios as GIVEN, WHEN, THEN, TEST, Purpose first in new parts.
 
 ```markdown
 ### Requirement: Warn band
@@ -58,7 +58,7 @@ Above warn, check SHALL warn.
 Simple and exact; no reader can misread it.
 
 1. Answer first; one point per line; at most 5 items per list, 25 words per sentence.
-2. One term per thing, in every file; parts by spec id.
+2. One [glossary](glossary.md) term per thing, everywhere; parts by spec id.
 3. Named subjects, active voice; "it", "this", "that" only with their noun.
 4. Numbers with units: "in 2 days", not "soon".
 5. Unknowns: "not known" or a range, never a guess.
@@ -79,7 +79,7 @@ proposal | 150 | 225
 design | 125 | 190
 tasks | 75 | 115
 specs (delta specs) | 150 | 225
-requirements (headings) | 5 | 7
+claims (headings) | 5 | 7
 
 Other keys count words: tokens with a letter or digit, outside code fences, comments, TEST lines and Prove claims.
 

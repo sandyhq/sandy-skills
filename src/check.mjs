@@ -3,6 +3,7 @@ import { normalize, SIDES } from './parts.mjs';
 import { diagramFindings } from './diagram.mjs';
 import { changeFindings, DEFAULT_REVIEW, readLimits } from './limits.mjs';
 import { changeReview } from './review.mjs';
+import { standardGlossary, wrongTermFindings } from './glossary.mjs';
 import { scenarioFindings } from './scenarios.mjs';
 
 /** From weakest to strongest. A part is as proven as its weakest side. */
@@ -55,12 +56,13 @@ function lightOf(test) {
  * @param parts results of parsePart
  * @param tests results of parseJUnit
  * @param opts {today: 'yyyy-mm-dd', openTasks: text of tasks.md of every open change, diagrams: marked blocks from repoBlocks,
- *   changes: open changes from readOpenChanges, limits: from readLimits, review: from readReview, specFiles: from readSpecFiles}
+ *   changes: open changes from readOpenChanges, limits: from readLimits, review: from readReview, specFiles: from readSpecFiles,
+ *   glossary: from mergeGlossaries, default the package's standards/glossary.md}
  */
 /** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
 const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);
 
-export function check(parts, tests, { today, openTasks = '', diagrams = [], changes = [], limits = readLimits(''), review = DEFAULT_REVIEW, specFiles = [] }) {
+export function check(parts, tests, { today, openTasks = '', diagrams = [], changes = [], limits = readLimits(''), review = DEFAULT_REVIEW, specFiles = [], glossary = standardGlossary() }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today ?? '')) throw new Error('today must be yyyy-mm-dd');
   const findings = [];
   const add = (part, kind, severity, detail, requirement) =>
@@ -174,6 +176,9 @@ export function check(parts, tests, { today, openTasks = '', diagrams = [], chan
   findings.push(...changeReview(changes, review));
   // Scenario shape of specs and open changes: findings of the spec file, never drift of a part.
   findings.push(...scenarioFindings(specFiles));
+  // Glossary words in the specs and in every Markdown file of an open change: findings of the file, never drift.
+  const glossaryFiles = [...specFiles.filter((f) => f.file.startsWith('openspec/specs/')), ...changes.flatMap((c) => c.files.filter((f) => f.path.endsWith('.md')).map((f) => ({ part: c.id, file: `${c.dir}/${f.path}`, text: f.text })))];
+  findings.push(...wrongTermFindings(glossaryFiles, glossary));
 
   for (const r of results) {
     const own = findings.filter((f) => f.part === r.id && f.severity !== 'info' && !f.file);

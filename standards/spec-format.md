@@ -6,13 +6,13 @@ Two ideas. Every part has a why, a contract and proof from four sides, and the t
 
 ## A part
 
-One OpenSpec capability, `openspec/specs/<id>/spec.md`. This repo's [cli spec](../openspec/specs/cli/spec.md) is a full example.
+One part (an OpenSpec `capability`), `openspec/specs/<id>/spec.md`, worded with the [glossary](glossary.md). This repo's [cli spec](../openspec/specs/cli/spec.md) is a full example.
 
 - `## Purpose`: the why, then one line `Kind: container · Part of: <id or none> · Carried by: <who> · Status: active · Code: <paths>`. Kinds: context, system, container, component, operation. Status: proposed, active, retired.
 - `### Requirement: Contract`: what must hold, one SHALL sentence.
 - `### Requirement: Seam to <id>`: one per neighbour; `Read-only.` or `Exclusive.` (the only writer) in the sentence.
-- Every other requirement is one claim, one [EARS](https://alistairmavin.com/ears/) sentence.
-- Every scenario has the lines `- **GIVEN**` (the starting state; `GIVEN any repo` when it does not matter), `- **WHEN**` (the action), `- **THEN**` (the outcome) and `- **TEST** \`<path>::<test name>\``, in this order. `- **AND**` lines are allowed after GIVEN, WHEN or THEN. The test name is the requirement sentence. `sandy-skills check` reports every other shape as the error `scenario-shape`, in `openspec/specs/` and in open changes.
+- Every other `### Requirement:` heading is one claim, one [EARS](https://alistairmavin.com/ears/) sentence.
+- Every scenario has the lines `- **GIVEN**` (the starting state; `GIVEN any repo` when it does not matter), `- **WHEN**` (the action), `- **THEN**` (the outcome) and `- **TEST** \`<path>::<test name>\``, in this order. `- **AND**` lines are allowed after GIVEN, WHEN or THEN. The test name is the claim sentence. `sandy-skills check` reports every other shape as the error `scenario-shape`, in `openspec/specs/` and in open changes.
 - A picture of parts and seams is generated from these lines, never drawn by hand: [diagrams](diagrams.md).
 - A person's confirmation: `- **CONFIRMED** <I|We|They> by <who> on <date>, expires <date>, contract <hash>` (or `REFUTED`), at most 90 days, hash from `sandy-skills hash <id>`.
 
@@ -26,7 +26,7 @@ Computed by `sandy-skills check` from the specs and the JUnit report of the curr
 
 ## Changes and decisions
 
-Changes use the [proven schema](../openspec/schemas/proven/schema.yaml): the proposal is the why, `tasks.md` lists the claims as todo tests, `design.md` holds the decisions with rejected alternatives and is archived with the change. The shape of each file, the wording rules and the size limits that `sandy-skills check` measures: [changes](changes.md). A decision about one module also sits in its doc comment. Architecture rules (layers, allowed imports) go in `docs/architecture.md`, enforced by the language's import linter; mutation testing on a schedule probes whether the tests really pin the claims.
+Changes use the [proven schema](../openspec/schemas/proven/schema.yaml): the proposal is the why, `tasks.md` lists the claims as todo tests, `design.md` holds the decisions with rejected alternatives and is archived with the change. The shape of each file, the wording rules and the size limits that `sandy-skills check` measures: [changes](changes.md). A decision about one file also sits in its doc comment. Architecture rules (layers, allowed imports) go in `docs/architecture.md`, enforced by the language's import linter; mutation testing on a schedule probes whether the tests really pin the claims.
 
 ## Checks
 

@@ -34,7 +34,8 @@ init sets up OpenSpec if the repo has none (--tools goes to openspec init), then
 schema as default and the skills next to OpenSpec's. update installs them again from this version.
 check exits 1 when the result is not releasable (any error; with --strict also any warning), and reports
 diagram blocks that differ from the specs, open changes that are long, over the limit or vague
-(sandy-skills.limits in openspec/config.yaml) or whose estimated review is long (sandy-skills.review), and scenarios that are not GIVEN, WHEN, THEN, TEST. validate runs openspec validate with its arguments, then check
+(sandy-skills.limits in openspec/config.yaml) or whose estimated review is long (sandy-skills.review), scenarios that are not GIVEN, WHEN, THEN, TEST, and words from a Not line of the glossary
+(standards/glossary.md of this package). validate runs openspec validate with its arguments, then check
 with --junit, --out and --strict (--strict goes to both), and exits non-zero when either fails.
 diagram prints a Mermaid flowchart of every part, or of one part, what is below it and its neighbours;
 --write refreshes every <!-- sandy-skills diagram: <id|all> --> block in the repo's Markdown and lists

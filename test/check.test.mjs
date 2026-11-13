@@ -8,14 +8,14 @@ const run = (specs, tests = [], openTasks = '') => check(specs.map(parsePart), t
 const kinds = (r) => r.findings.filter((f) => f.severity !== 'info').map((f) => f.kind);
 const T = 'test/a.test.mjs::t';
 
-test('When a referenced test passed, the checker SHALL light the requirement hard.', () => {
+test('When a referenced test passed, the checker SHALL light the claim hard.', () => {
   const r = run([spec('a', { tests: [T] })], [passed('t')]);
   assert.equal(r.parts[0].requirements[0].tests[0].light, 'hard');
   assert.equal(r.parts[0].sides.It, 'hard');
   assert.deepEqual(kinds(r), []);
 });
 
-test('When a referenced test failed, the checker SHALL report a break and light the requirement refuted.', () => {
+test('When a referenced test failed, the checker SHALL report a break and light the claim refuted.', () => {
   const r = run([spec('a', { tests: [T] })], [withStatus('failed', 't')]);
   assert.equal(r.parts[0].sides.It, 'refuted');
   assert.deepEqual(kinds(r), ['break']);
@@ -27,7 +27,7 @@ test('If a TEST line names a test that the report does not contain, then the che
   assert.deepEqual(r.findings.filter((f) => f.kind === 'missing-test').map((f) => f.detail), ['test/other.test.mjs::t is not in the test report']);
 });
 
-test('When a test name is a sentence that differs from its requirement, the checker SHALL report claim-mismatch.', () => {
+test('When a test name is a sentence that differs from its claim, the checker SHALL report claim-mismatch.', () => {
   const ok = run([spec('a', { contract: 'The a SHALL hold.', tests: ['test/a.test.mjs::the a  SHALL hold'] })], [passed('the a  SHALL hold')]);
   assert.deepEqual(kinds(ok), []);
   const bad = run([spec('a', { contract: 'The a SHALL hold.', tests: ['test/a.test.mjs::The a SHALL fold.'] })], [passed('The a SHALL fold.')]);

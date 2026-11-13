@@ -197,7 +197,7 @@ const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordRe = (w) => new RegExp(`(?<![\\p{L}\\p{N}_])${w.trim().split(/\s+/).map(escape).join('\\s+')}(?![\\p{L}\\p{N}_])`, 'iu');
 
 /** The text with each code span blanked, line ends kept: n backticks up to the next run of exactly n in the same paragraph. */
-function blankCodeSpans(text) {
+export function blankCodeSpans(text) {
   let out = '';
   let i = 0;
   while (i < text.length) {

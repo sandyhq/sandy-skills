@@ -8,10 +8,11 @@ Engineering standards for repos where people and AI agents build together. Each 
 | [Spec format](spec-format.md) | How intent, proof and decisions are written so a machine can check them | Draft; tooling in this repo, proven on this repo only |
 | [Changes](changes.md) | How a change is shaped, worded and sized so the owner can read it in 3 minutes | Draft; measured by the CLI, used on this repo only |
 | [Diagrams](diagrams.md) | How pictures of parts and seams stay equal to the specs | Draft; generated and checked by the CLI, used on this repo only |
+| [Glossary](glossary.md) | Which word names which thing, and which other words `sandy-skills check` reports | Draft; checked by the CLI, used on this repo only |
 | [Repo structure](repo-structure.md) | Where each kind of knowledge lives in a repo | Proposal, not yet tried on a project |
 
 Where the ideas come from: [sources.md](sources.md).
 
 ## Adopting
 
-Introduce a standard repo by repo, one MR each; the repo's own `AGENTS.md` and checks win where they conflict. To adopt the spec format, follow [Getting started](https://github.com/sandyhq/sandy-skills/blob/main/docs/getting-started.md): `sandy-skills init` sets up OpenSpec, the schema and the skills in the repo.
+Introduce a standard repo by repo, one merge request each; the repo's own `AGENTS.md` and checks win where they conflict. To adopt the spec format, follow [Getting started](https://github.com/sandyhq/sandy-skills/blob/main/docs/getting-started.md): `sandy-skills init` sets up OpenSpec, the schema and the skills in the repo.

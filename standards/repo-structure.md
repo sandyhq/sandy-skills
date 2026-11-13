@@ -25,7 +25,7 @@ docs/
   test-strategy.md   Which environment, which check runs where
   runbook.md         Deploy, rollback, alerts; updated after every incident
   open-questions.md  Question, who answers it, open since when
-  glossary.md        What a word means here
+  glossary.md        What a word means here: ## word, 1 definition, Not: line (standards/glossary.md)
   sources.md         Where the knowledge comes from
 openspec/            Parts, claims and changes (see spec-format.md)
 api/                 Machine-readable API descriptions
@@ -36,7 +36,7 @@ spikes/              Throwaway code; what is adopted moves to services/ after re
 
 - **AGENTS.md** stays short: build and test commands, naming and commit conventions, areas an agent must not change, and a pointer to `scope.md` with the rule "what is not in scope is not built".
 - **scope.md** has two lists, in and deliberately out; the second stops agents and people from building more than asked.
-- **Decisions** live in the `design.md` of the OpenSpec change that made them, archived and never edited, superseded by a later change; a decision about one module also in its doc comment ([spec-format.md](spec-format.md)). A repo without OpenSpec keeps them in `docs/decisions/`, one record per file after Michael Nygard: context, decision, rejected alternatives, consequences.
+- **Decisions** live in the `design.md` of the OpenSpec change that made them, archived and never edited, superseded by a later change; a decision about one file also in its doc comment ([spec-format.md](spec-format.md)). A repo without OpenSpec keeps them in `docs/decisions/`, one record per file after Michael Nygard: context, decision, rejected alternatives, consequences.
 - **sources.md** and **deploy/** hold no passwords or keys; the secret scan of the [baseline](secure-engineering-baseline.md) checks it.
 
 ## Why a standard
