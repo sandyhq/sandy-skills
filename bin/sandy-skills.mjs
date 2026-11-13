@@ -159,7 +159,7 @@ async function main(argv) {
   }
   if (command === 'hash' || command === 'confirm') {
     const part = parsePart(loadSpec(root, rest[0]));
-    if (!part.contract) { console.error(`${rest[0]} has no "Requirement: Contract"`); return 1; }
+    if (!part.contract) { console.error(`${rest[0]} has no \`### Requirement: Contract\` heading`); return 1; }
     if (command === 'hash') { console.log(part.contract.hash); return 0; }
     const [, side, who] = rest;
     if (!['I', 'We', 'They'].includes(side) || !who) { console.error(USAGE); return 2; }

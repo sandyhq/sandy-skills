@@ -1,4 +1,4 @@
-// The releasability report: one Markdown page per run, for an MR comment and a CI artifact.
+// The releasability report: one Markdown page per run, for a merge request comment and a CI artifact.
 export const SYMBOL = { hard: '●', soft: '◐', claimed: '◌', open: '○', refuted: '✕', expired: '◇', drift: '◇' };
 const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 
@@ -17,10 +17,10 @@ export function renderMarkdown(result) {
   out.push('', '## Findings', '');
   if (shown.length === 0) out.push('None.');
   else {
-    out.push('| Severity | Part | Kind | Requirement | Detail |', '|---|---|---|---|---|');
+    out.push('| Severity | Part | Kind | Claim or seam | Detail |', '|---|---|---|---|---|');
     for (const f of shown) out.push(`| ${f.severity} | ${cell(f.part)} | ${f.kind} | ${cell(f.requirement ?? '')} | ${cell(f.detail)} |`);
   }
-  out.push('', '## Requirements', '');
+  out.push('', '## Claims and seams', '');
   for (const p of parts) {
     out.push(`### ${p.id}`, '');
     for (const r of p.requirements) {

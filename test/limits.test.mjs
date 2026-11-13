@@ -19,7 +19,7 @@ const found = (r) => r.findings.filter((f) => f.severity !== 'info' && f.kind !=
 const requirements = (n) => Array.from({ length: n }, (_, i) => '### Requirement: R' + i + '\nThe a SHALL do ' + i + '.\n').join('\n');
 const DEFAULTS = {
   total: { warn: 500, error: 750 }, proposal: { warn: 150, error: 225 }, design: { warn: 125, error: 190 },
-  tasks: { warn: 75, error: 115 }, specs: { warn: 150, error: 225 }, requirements: { warn: 5, error: 7 },
+  tasks: { warn: 75, error: 115 }, specs: { warn: 150, error: 225 }, claims: { warn: 5, error: 7 },
 };
 
 /** A repo in a temp dir from files by path, then check --format json there. */
@@ -205,4 +205,10 @@ test('The checker SHALL skip fenced code, HTML comments, backticks and the keywo
   const own = { ...readLimits(''), vagueWords: ['shall', 'when', 'then', 'and', 'given'] };
   assert.deepEqual(found(run([change({ 'specs/a/spec.md': text })], own)), []);
   assert.deepEqual(found(run([change({ 'specs/a/spec.md': 'Then and when.' })], own)).map((f) => f.word), ['when', 'then', 'and']);
+});
+
+test("check SHALL read the limit on claims per change from the key claims of sandy-skills.limits, and from its older key of 0.5 and 0.6.", () => {
+  assert.deepEqual(readLimits('sandy-skills:\n  limits:\n    claims: { error: 6 }\n').claims, { warn: 5, error: 6 });
+  assert.deepEqual(readLimits('sandy-skills:\n  limits:\n    requirements: { warn: 2 }\n').claims, { warn: 2, error: 7 });
+  assert.equal(readLimits('').requirements, undefined);
 });

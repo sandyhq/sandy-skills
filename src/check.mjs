@@ -91,7 +91,7 @@ export function check(parts, tests, { today, openTasks = '', diagrams = [], chan
         const name = test.name.includes(' > ') ? test.name.slice(test.name.lastIndexOf(' > ') + 3) : test.name;
         const claim = (s) => normalize(s).replace(/\.$/, '').toLowerCase();
         if (/\s/.test(name.trim()) && claim(name) !== claim(requirement.text)) {
-          add(part.id, 'claim-mismatch', 'error', `test "${name}" does not state the requirement "${requirement.text}"`, requirement.name);
+          add(part.id, 'claim-mismatch', 'error', `test "${name}" does not state the claim "${requirement.text}"`, requirement.name);
         }
       }
       return { ref: ref.ref, light, status: test ? test.status : 'missing' };
@@ -128,7 +128,7 @@ export function check(parts, tests, { today, openTasks = '', diagrams = [], chan
     if (part.partOf && !byId.has(part.partOf)) add(part.id, 'unknown-parent', 'error', `Part of "${part.partOf}" is no spec`);
     if (!part.why) add(part.id, 'orphan-above', 'warning', 'Purpose states no why');
     if (part.status === 'proposed') add(part.id, 'orphan-below', 'warning', 'Status is proposed: nothing fulfils it yet');
-    if (!part.contract && !plain) add(part.id, 'no-contract', 'error', 'no "Requirement: Contract"');
+    if (!part.contract && !plain) add(part.id, 'no-contract', 'error', 'no `### Requirement: Contract` heading');
 
     const requirements = [];
     const itLights = [];

@@ -1,4 +1,4 @@
-// Size and wording limits for open changes: words per file, requirements per change, vague words. Pure: no I/O.
+// Size and wording limits for open changes: words per file, claims per change, vague words. Pure: no I/O.
 // Owner decision (0.5.0): a change is read in about 3 minutes (500 words); over 750 words it is split, never trimmed.
 
 /** Per measure: more than warn is long-change (warning), more than error is over-limit (error). */
@@ -8,8 +8,10 @@ export const DEFAULT_LIMITS = {
   design: { warn: 125, error: 190 },
   tasks: { warn: 75, error: 115 },
   specs: { warn: 150, error: 225 },
-  requirements: { warn: 5, error: 7 },
+  claims: { warn: 5, error: 7 },
 };
+/** Keys of 0.5 and 0.6 that still work: requirements is the key claims. */
+const OLD_KEYS = { requirements: 'claims' };
 export const DEFAULT_VAGUE_WORDS = ['should', 'may', 'might', 'could', 'just', 'simply', 'probably', 'maybe', 'etc', 'various', 'appropriate', 'appropriately', 'as needed', 'if needed', 'and/or', 'tbd', 'some', 'several', 'soon', 'fast', 'quickly'];
 const MEASURES = Object.keys(DEFAULT_LIMITS);
 /** Owner (0.6.0): target 20 minutes (printed only), warn above 30, fail above 60; code lines warn above 200, fail above 400. */
@@ -128,9 +130,10 @@ export function readLimits(configText) {
     if (blank(body[i])) continue;
     const m = /^\s*([A-Za-z]+):(?:\s+(.*))?$/.exec(body[i].t);
     if (!m || indent(body[i]) !== keyIndent) throw fail(body[i], `cannot read "${body[i].t.trim()}" under sandy-skills.limits`);
-    const [, key, raw = ''] = m;
+    const [, written, raw = ''] = m;
+    const key = OLD_KEYS[written] ?? written;
     const line = body[i];
-    const where = `sandy-skills.limits.${key}`;
+    const where = `sandy-skills.limits.${written}`;
     let j = i;
     while (j + 1 < body.length && (blank(body[j + 1]) || indent(body[j + 1]) > keyIndent || (key === 'vagueWords' && /^\s*- /.test(body[j + 1].t)))) j++;
     const below = body.slice(i + 1, j + 1);
@@ -252,7 +255,7 @@ export function changeFindings(changes, limits = readLimits('')) {
       design: [`${change.dir}/design.md`, own('design.md'), 'words'],
       tasks: [`${change.dir}/tasks.md`, own('tasks.md'), 'words'],
       specs: [`${change.dir}/specs/`, specs.reduce((n, f) => n + words(f), 0), 'words'],
-      requirements: [`${change.dir}/specs/`, specs.reduce((n, f) => n + requirementCount(f.text), 0), 'requirements'],
+      claims: [`${change.dir}/specs/`, specs.reduce((n, f) => n + requirementCount(f.text), 0), 'claims'],
     };
     for (const key of MEASURES) {
       const [file, count, unit] = measured[key];

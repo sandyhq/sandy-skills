@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parsePart, contractHash } from '../src/parts.mjs';
 import { check } from '../src/check.mjs';
+import { renderMarkdown } from '../src/report.mjs';
+import { wrongTermFindings } from '../src/glossary.mjs';
 import { spec, passed, withStatus, TODAY } from './helpers.mjs';
 
 const run = (specs, tests = [], openTasks = '') => check(specs.map(parsePart), tests, { today: TODAY, openTasks });
@@ -127,4 +129,16 @@ test("check SHALL report missing-relation as an error for a seam without a Relat
   const r = run(relation(null));
   assert.deepEqual(relationFindings(r), [{ part: 'cli', kind: 'missing-relation', severity: 'error', requirement: 'Seam to init', detail: 'seam to "init" has no line "Relation: <value> · Upstream: <id>"' }]);
   assert.equal(r.summary.releasable, false);
+});
+
+test("check SHALL word each finding and the report with glossary words, never with a word from a Not line.", () => {
+  const claims = Array.from({ length: 8 }, (_, i) => `### Requirement: R${i}\nThe a SHALL do ${i}.\n`).join('\n');
+  const specs = [spec('a', { tests: ['test/a.test.mjs::The a SHALL keep another promise.'], requirements: [['Seam to b', 'The a SHALL read b.']] }), spec('b', { contract: null, requirements: [['R', 'The b SHALL do it.', ['- **TEST** `x`']]] })];
+  const r = check(specs.map(parsePart), [passed('The a SHALL keep another promise.')], { today: TODAY, changes: [{ id: 'c', dir: 'openspec/changes/c', files: [{ path: 'specs/a/spec.md', text: '## ADDED Requirements\n\n' + claims }] }] });
+  assert.ok(['claim-mismatch', 'no-contract', 'missing-relation', 'over-limit', 'malformed-line'].every((k) => r.findings.some((f) => f.kind === k)), r.findings.map((f) => f.kind).join());
+  assert.match(r.findings.find((f) => f.kind === 'claim-mismatch').detail, /does not state the claim "The a SHALL keep its promise\."/);
+  assert.match(r.findings.find((f) => f.kind === 'over-limit' && f.measured === 8).detail, /: 8 claims, more than claims error 7;/);
+  const words = (file, text) => wrongTermFindings([{ part: '-', file, text }]).map((f) => `${f.line}: ${f.word}`);
+  assert.deepEqual(words('report.md', renderMarkdown(r)), []);
+  assert.deepEqual(r.findings.flatMap((f) => words(f.kind, f.detail)), []);
 });
