@@ -57,7 +57,7 @@ function lightOf(test) {
  * @param tests results of parseJUnit
  * @param opts {today: 'yyyy-mm-dd', openTasks: text of tasks.md of every open change, diagrams: marked blocks from repoBlocks,
  *   changes: open changes from readOpenChanges, limits: from readLimits, review: from readReview, specFiles: from readSpecFiles,
- *   glossary: from mergeGlossaries, default the package's standards/glossary.md}
+ *   glossary: from readGlossary, default the package's standards/glossary.md alone}
  */
 /** A spec written before adopting the format: no metadata line, Contract, seam, TEST or CONFIRMED line. */
 const isPlain = (part) => part.kind === null && !part.contract && part.seams.length === 0 && part.human.length === 0 && part.claims.every((c) => c.refs.length === 0);

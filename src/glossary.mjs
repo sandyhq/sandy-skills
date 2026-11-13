@@ -1,6 +1,7 @@
 // The glossary: 1 word for each thing. check reports a word from a Not line as wrong-term in the specs and in open
-// changes. The standard's words ship in standards/glossary.md.
-import { readFileSync } from 'node:fs';
+// changes. The standard's words ship in standards/glossary.md; each repo writes its own words in docs/glossary.md.
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { blankCodeSpans, proseLines } from './limits.mjs';
 
 const PACKAGE_GLOSSARY = new URL('../standards/glossary.md', import.meta.url);
@@ -44,6 +45,12 @@ export function mergeGlossaries(standardText, repoText = '') {
   const nots = [...std.entries, ...repo.entries].flatMap((e) => e.not.map((n) => ({ ...n, word: e.word })))
     .filter((n) => !defined.has(n.term.toLowerCase()));
   return { words: [...std.entries, ...repo.entries].map((e) => e.word), nots, relations: std.relations };
+}
+
+/** standards/glossary.md of the installed package and docs/glossary.md of the repo at root, merged. */
+export function readGlossary(root) {
+  const repo = root && existsSync(join(root, 'docs', 'glossary.md')) ? readFileSync(join(root, 'docs', 'glossary.md'), 'utf8') : '';
+  return mergeGlossaries(readFileSync(PACKAGE_GLOSSARY, 'utf8'), repo);
 }
 
 let standard = null;
